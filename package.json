@@ -1,0 +1,52 @@
+{
+  "name": "electron-html-to",
+  "version": "1.0.0",
+  "description": "Convert html to html/image using electron",
+  "main": "lib/index.js",
+  "scripts": {
+    "clean": "rimraf lib",
+    "build": "babel src --out-dir lib",
+    "lint": "eslint src test",
+    "test": "mocha test/test.js --timeout 6000",
+    "prepublish": "npm-run-all lint clean build"
+  },
+  "author": "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bjrmatos/electron-html-to.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bjrmatos/electron-html-to/issues"
+  },
+  "homepage": "https://github.com/bjrmatos/electron-html-to",
+  "keywords": [
+    "html",
+    "pdf",
+    "image",
+    "conversion",
+    "electron"
+  ],
+  "dependencies": {
+    "debug": "2.2.0",
+    "electron-workers": "1.0.1",
+    "lodash.pick": "3.1.0",
+    "minstache": "1.2.0",
+    "mkdirp": "0.5.1",
+    "object-assign": "4.0.1",
+    "pdfjs-dist": "1.2.113",
+    "sliced": "1.0.1",
+    "uuid": "2.0.1",
+    "which": "1.2.0"
+  },
+  "devDependencies": {
+    "babel": "5.8.29",
+    "babel-eslint": "4.1.4",
+    "eslint": "1.9.0",
+    "eslint-config-airbnb": "0.1.0",
+    "mocha": "2.3.3",
+    "npm-run-all": "1.2.13",
+    "rimraf": "2.4.3",
+    "should": "7.1.1"
+  }
+}
