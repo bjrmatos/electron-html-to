@@ -11,10 +11,6 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
     pageJSisDone = true;
   });
 
-  browserWindow.webContents.session.on('will-download', function(ev, downloadedItem) {
-    // TODO: test and complete implementation
-  });
-
   browserWindow.webContents.on('did-finish-load', function() {
     log('browser window loaded..');
 
@@ -27,6 +23,7 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
         electronFooter: document.querySelector(sPhantomFooter) ? document.querySelector(sPhantomFooter).innerHTML : null
       };
     }, function(err, extraContent) {
+      /* eslint no-unused-vars: [0] */
       if (err) {
         return respond(err);
       }

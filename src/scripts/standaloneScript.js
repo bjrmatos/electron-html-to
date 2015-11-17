@@ -20,7 +20,8 @@ var mainWindow = null,
     converter,
     log,
     WORKER_ID,
-    DEBUG_MODE;
+    DEBUG_MODE,
+    CUSTOM_PROTOCOL = 'electron-html-to';
 
 settingsFile = process.env.ELECTRON_HTML_TO_SETTINGS_FILE_PATH;
 converterPath = process.env.ELECTRON_HTML_TO_CONVERTER_PATH;
@@ -63,6 +64,8 @@ app.on('window-all-closed', function() {
 });
 
 app.on('ready', function() {
+  var protocol = require('protocol');
+
   var evaluateInWindow,
       dataForWindow = {},
       browserWindowOpts,
@@ -80,6 +83,62 @@ app.on('ready', function() {
   };
 
   log('electron process ready..');
+
+  protocol.registerStandardSchemes([CUSTOM_PROTOCOL]);
+
+  protocol.registerFileProtocol(CUSTOM_PROTOCOL, function(request, callback) {
+    var url = request.url.substr(CUSTOM_PROTOCOL.length + 3);
+
+    log(CUSTOM_PROTOCOL + ' file protocol request for:', request.url);
+
+    if (isURLEncoded(url)) {
+      url = decodeURIComponent(url);
+    }
+
+    log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url);
+    callback({ path: url });
+  }, function(registerProtocolErr) {
+    if (registerProtocolErr) {
+      return log('electron fails to register "' + CUSTOM_PROTOCOL + '" file protocol');
+    }
+
+    log('registration for custom file protocol "' + CUSTOM_PROTOCOL + '" was successfully');
+  });
+
+  protocol.interceptHttpProtocol('file', function(request, callback) {
+    var url = request.url.substr(7),
+        delegateProtocolScheme = CUSTOM_PROTOCOL + '://';
+
+    log('file protocol request for:', request.url);
+
+    // request to the page
+    if (request.url.lastIndexOf(settingsData.url, 0) === 0) {
+      url = delegateProtocolScheme + url;
+      log('handling file protocol request to load the page. response file url:', url);
+      callback({ url: url });
+    } else if (request.url.lastIndexOf('file:///', 0) === 0 && !settingsData.allowLocalFilesAccess) {
+      // potentially dangerous request
+      log('denying access to a file, url:', request.url);
+      // Permission to access a resource, other than the network, was denied.
+      // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
+      callback(-10);
+    } else if (request.url.lastIndexOf('file://', 0) === 0 && request.url.lastIndexOf('file:///', 0) !== 0) {
+      // support cdn like format -> //cdn.jquery...
+      url = 'http://' + url;
+      log('handling cdn format request, response url:', url);
+      callback({ url: url });
+    } else {
+      url = delegateProtocolScheme + url;
+      log('response file url:', url);
+      callback({ url: url });
+    }
+  }, function(interceptProtocolErr) {
+    if (interceptProtocolErr) {
+      return log('electron fails to register file protocol');
+    }
+
+    log('interception for file protocol register successfully');
+  });
 
   if (settingsData.waitForJS) {
     log('waitForJS enabled..');
@@ -166,8 +225,13 @@ app.on('ready', function() {
   conversionScript(settingsData, mainWindow, evaluateInWindow, log, converter, respond);
 
   log(util.format('loading url in browser window: %s', settingsData.url));
+
   mainWindow.loadUrl(settingsData.url);
 });
+
+function isURLEncoded(url) {
+  return decodeURIComponent(url) !== url;
+}
 
 function respond(err, data) {
   var errMsg = null;
@@ -180,10 +244,16 @@ function respond(err, data) {
 
   parentChannel.emit('finish', errMsg, data);
 
+  if (!mainWindow) {
+    return;
+  }
+
   if (DEBUG_MODE) {
+    // in debug mode, don't destroy the browser window
     mainWindow.show();
     // mainWindow.openDevTools();
   } else {
+    log('destroying browser window..');
     mainWindow.destroy();
   }
 }
