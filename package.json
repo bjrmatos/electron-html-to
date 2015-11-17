@@ -29,12 +29,12 @@
   ],
   "dependencies": {
     "debug": "2.2.0",
-    "electron-workers": "1.0.1",
+    "electron-workers": "1.1.0",
     "lodash.pick": "3.1.0",
     "minstache": "1.2.0",
     "mkdirp": "0.5.1",
     "object-assign": "4.0.1",
-    "pdfjs-dist": "1.2.113",
+    "pdfjs-dist": "1.2.127",
     "sliced": "1.0.1",
     "uuid": "2.0.1",
     "which": "1.2.0"
