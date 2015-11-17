@@ -95,6 +95,10 @@ app.on('ready', function() {
       url = decodeURIComponent(url);
     }
 
+    if (process.platform === 'win32' && url.slice(0, 1) === '/') {
+      url = url.slice(1);
+    }
+
     log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url);
     callback({ path: url });
   }, function(registerProtocolErr) {
