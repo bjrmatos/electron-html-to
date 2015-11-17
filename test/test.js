@@ -50,8 +50,11 @@ describe('electron html to pdf', () => {
 
   function common(strategy) {
     beforeEach(() => {
-      rmDir(tmpDir);
       conversion.options.strategy = strategy;
+    });
+
+    after(() => {
+      rmDir(tmpDir);
     });
 
     it('should set number of pages correctly', function(done) {
