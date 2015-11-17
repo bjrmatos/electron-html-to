@@ -53,7 +53,7 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
 
           log('calling converter function..');
 
-          converter(html, assign({}, settings), browserWindow, function(converterErr, data) {
+          converter(log, html, assign({}, settings), browserWindow, function(converterErr, data) {
             log('converter function ended..');
             respond(converterErr, data);
           });

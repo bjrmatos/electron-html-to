@@ -5,7 +5,7 @@ var path = require('path'),
     assign = require('object-assign'),
     pdfParser = require('../pdfParser');
 
-module.exports = function(html, settings, browserWindow, done) {
+module.exports = function(log, html, settings, browserWindow, done) {
   var pdfDefaults = {
     marginsType: 0,
     pageSize: 'A4',
@@ -17,6 +17,8 @@ module.exports = function(html, settings, browserWindow, done) {
   var pdfSettings = settings.pdf,
       pdfOptions = assign({}, pdfDefaults, pdfSettings, { printSelectionOnly: false });
 
+  log('before printing..');
+
   browserWindow.printToPDF(pdfOptions, function(err, pdfBuf) {
     var dist = path.join(settings.output.tmpDir, settings.output.id + '.pdf');
 
@@ -24,13 +26,15 @@ module.exports = function(html, settings, browserWindow, done) {
       return done(err);
     }
 
-    // don't know why the pdf parser logic
-    // stops when the electron process is not focused in the OS..
-    // anyway this console.log prevent the conversion to stop
-    /* eslint no-console: [0] */
-    console.log('DON\'T FREEZE PDFJS!');
+    // don't know why the electron process hangs up if i don't log anything here
+    // (probably pdf.js?)
+    // anyway this log prevent the conversion to stop
+    log('after printing..');
+    log('parsing pdf..');
 
     pdfParser(pdfBuf, function(pdfParseErr, pdfDoc) {
+      log('pdf parsing complete..');
+
       if (pdfParseErr) {
         return done(pdfParseErr);
       }
