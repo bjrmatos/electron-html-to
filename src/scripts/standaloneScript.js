@@ -182,10 +182,7 @@ function respond(err, data) {
 
   if (DEBUG_MODE) {
     mainWindow.show();
-
-    setTimeout(function() {
-      mainWindow.destroy();
-    }, 4000);
+    // mainWindow.openDevTools();
   } else {
     mainWindow.destroy();
   }

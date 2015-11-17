@@ -142,6 +142,8 @@ export default function(options, requestOptions, converterPath, id, cb) {
         debugStrategy('conversion ended with error..');
         cb(new Error(err));
       } else {
+        // disabling no-undef rule because eslint don't detect object rest spread correctly
+        /* eslint-disable no-undef */
         let { output, ...restData } = childData;
 
         debugStrategy('conversion ended successfully..');
@@ -150,17 +152,11 @@ export default function(options, requestOptions, converterPath, id, cb) {
           ...restData,
           stream: fs.createReadStream(output)
         });
+        /* eslint-enable no-undef */
       }
 
-      if (debugMode) {
-        setTimeout(function() {
-          if (child.connected) {
-            child.disconnect();
-          }
-
-          child.kill();
-        }, 4000);
-      } else {
+      // in debug mode, don't close the electron process
+      if (!debugMode) {
         if (child.connected) {
           child.disconnect();
         }
