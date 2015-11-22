@@ -9,6 +9,7 @@ var util = require('util'),
     assign = require('object-assign'),
     pick = require('lodash.pick'),
     sliced = require('sliced'),
+    registerProtocol = require('./registerProtocol'),
     conversionScript = require('./conversionScript'),
     evaluate = require('./evaluateJS'),
     parentChannel = require('../ipc')(process);
@@ -20,8 +21,7 @@ var mainWindow = null,
     converter,
     log,
     WORKER_ID,
-    DEBUG_MODE,
-    CUSTOM_PROTOCOL = 'electron-html-to';
+    DEBUG_MODE;
 
 settingsFile = process.env.ELECTRON_HTML_TO_SETTINGS_FILE_PATH;
 converterPath = process.env.ELECTRON_HTML_TO_CONVERTER_PATH;
@@ -63,6 +63,12 @@ app.on('window-all-closed', function() {
   app.quit();
 });
 
+if (app.dock && typeof app.dock.hide === 'function') {
+  if (!DEBUG_MODE) {
+    app.dock.hide();
+  }
+}
+
 app.on('ready', function() {
   var protocol = require('protocol');
 
@@ -84,158 +90,105 @@ app.on('ready', function() {
 
   log('electron process ready..');
 
-  protocol.registerStandardSchemes([CUSTOM_PROTOCOL]);
-
-  protocol.registerFileProtocol(CUSTOM_PROTOCOL, function(request, callback) {
-    var url = request.url.substr(CUSTOM_PROTOCOL.length + 3);
-
-    log(CUSTOM_PROTOCOL + ' file protocol request for:', request.url);
-
-    if (isURLEncoded(url)) {
-      url = decodeURIComponent(url);
+  registerProtocol(protocol, settingsData, log, function(registrationErr) {
+    if (registrationErr) {
+      return respond(registrationErr);
     }
 
-    if (process.platform === 'win32' && url.slice(0, 1) === '/') {
-      url = url.slice(1);
+    if (settingsData.waitForJS) {
+      log('waitForJS enabled..');
+
+      dataForWindow.waitForJS = settingsData.waitForJS;
+      dataForWindow.waitForJSVarName = settingsData.waitForJSVarName;
     }
 
-    log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url);
-    callback({ path: url });
-  }, function(registerProtocolErr) {
-    if (registerProtocolErr) {
-      return log('electron fails to register "' + CUSTOM_PROTOCOL + '" file protocol');
+    renderer.on('page-error', function(ev, windowId, errMsg, errStack) {
+      parentChannel.emit('page-error', windowId, errMsg, errStack);
+    });
+
+    renderer.on('page-log', function(ev, args) {
+      parentChannel.emit.apply(parentChannel, ['page-log'].concat(args));
+    });
+
+    renderer.on('log', function() {
+      var newArgs = sliced(arguments),
+          windowId = newArgs.splice(0, 2)[1];
+
+      newArgs.unshift('[Browser window - ' + windowId + ' log ]:');
+
+      log.apply(log, newArgs);
+    });
+
+    browserWindowOpts = pick(settingsData.browserWindow || {}, [
+      'width',
+      'height',
+      'x',
+      'y',
+      'use-content-size',
+      'web-preferences'
+    ]);
+
+    browserWindowOpts = assign({}, browserWindowDefaults, browserWindowOpts, {
+      show: false
+    });
+
+    webPreferences = pick(browserWindowOpts['web-preferences'] || {}, [
+      'node-integration',
+      'partition',
+      'zoom-factor',
+      'javascript',
+      'web-security',
+      'allow-displaying-insecure-content',
+      'allow-running-insecure-content',
+      'images',
+      'java',
+      'webgl',
+      'webaudio',
+      'plugins',
+      'experimental-features',
+      'experimental-canvas-features',
+      'overlay-scrollbars',
+      'overlay-fullscreen-video',
+      'shared-worker',
+      'direct-write'
+    ]);
+
+    browserWindowOpts['web-preferences'] = assign({}, webPreferencesDefaults, webPreferences, {
+      preload: path.join(__dirname, 'preload.js')
+    });
+
+    log('creating new browser window with options:', browserWindowOpts);
+
+    if (browserWindowOpts.show) {
+      log('browser window visibility activated');
     }
 
-    log('registration for custom file protocol "' + CUSTOM_PROTOCOL + '" was successfully');
-  });
+    mainWindow = new BrowserWindow(browserWindowOpts);
 
-  protocol.interceptHttpProtocol('file', function(request, callback) {
-    var url = request.url.substr(7),
-        delegateProtocolScheme = CUSTOM_PROTOCOL + '://';
+    evaluateInWindow = evaluate(mainWindow);
+    global.windowsData[mainWindow.id] = dataForWindow;
 
-    log('file protocol request for:', request.url);
+    mainWindow.webContents.setAudioMuted(true);
 
-    // request to the page
-    if (request.url.lastIndexOf(settingsData.url, 0) === 0) {
-      url = delegateProtocolScheme + url;
-      log('handling file protocol request to load the page. response file url:', url);
-      callback({ url: url });
-    } else if (request.url.lastIndexOf('file:///', 0) === 0 && !settingsData.allowLocalFilesAccess) {
-      // potentially dangerous request
-      log('denying access to a file, url:', request.url);
-      // Permission to access a resource, other than the network, was denied.
-      // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
-      callback(-10);
-    } else if (request.url.lastIndexOf('file://', 0) === 0 && request.url.lastIndexOf('file:///', 0) !== 0) {
-      // support cdn like format -> //cdn.jquery...
-      url = 'http://' + url;
-      log('handling cdn format request, response url:', url);
-      callback({ url: url });
-    } else {
-      url = delegateProtocolScheme + url;
-      log('response file url:', url);
-      callback({ url: url });
-    }
-  }, function(interceptProtocolErr) {
-    if (interceptProtocolErr) {
-      return log('electron fails to register file protocol');
+    mainWindow.on('closed', function() {
+      log('browser-window closed..');
+
+      delete global.windowsData[mainWindow.id];
+      mainWindow = null;
+    });
+
+    conversionScript(settingsData, mainWindow, evaluateInWindow, log, converter, respond);
+
+    if (settingsData.userAgent) {
+      log('setting up custom user agent: ' + settingsData.userAgent);
+      mainWindow.webContents.setUserAgent(settingsData.userAgent);
     }
 
-    log('interception for file protocol register successfully');
+    log(util.format('loading url in browser window: %s', settingsData.url));
+
+    mainWindow.loadUrl(settingsData.url);
   });
-
-  if (settingsData.waitForJS) {
-    log('waitForJS enabled..');
-
-    dataForWindow.waitForJS = settingsData.waitForJS;
-    dataForWindow.waitForJSVarName = settingsData.waitForJSVarName;
-  }
-
-  renderer.on('page-error', function(ev, windowId, errMsg, errStack) {
-    parentChannel.emit('page-error', windowId, errMsg, errStack);
-  });
-
-  renderer.on('page-log', function(ev, args) {
-    parentChannel.emit.apply(parentChannel, ['page-log'].concat(args));
-  });
-
-  renderer.on('log', function() {
-    var newArgs = sliced(arguments),
-        windowId = newArgs.splice(0, 2)[1];
-
-    newArgs.unshift('[Browser window - ' + windowId + ' log ]:');
-
-    log.apply(log, newArgs);
-  });
-
-  browserWindowOpts = pick(settingsData.browserWindow || {}, [
-    'width',
-    'height',
-    'x',
-    'y',
-    'use-content-size',
-    'web-preferences'
-  ]);
-
-  browserWindowOpts = assign({}, browserWindowDefaults, browserWindowOpts, {
-    show: false
-  });
-
-  webPreferences = pick(browserWindowOpts['web-preferences'] || {}, [
-    'node-integration',
-    'partition',
-    'zoom-factor',
-    'javascript',
-    'web-security',
-    'allow-displaying-insecure-content',
-    'allow-running-insecure-content',
-    'images',
-    'java',
-    'webgl',
-    'webaudio',
-    'plugins',
-    'experimental-features',
-    'experimental-canvas-features',
-    'overlay-scrollbars',
-    'overlay-fullscreen-video',
-    'shared-worker',
-    'direct-write'
-  ]);
-
-  browserWindowOpts['web-preferences'] = assign({}, webPreferencesDefaults, webPreferences, {
-    preload: path.join(__dirname, 'preload.js')
-  });
-
-  log('creating new browser window with options:', browserWindowOpts);
-
-  if (browserWindowOpts.show) {
-    log('browser window visibility activated');
-  }
-
-  mainWindow = new BrowserWindow(browserWindowOpts);
-
-  evaluateInWindow = evaluate(mainWindow);
-  global.windowsData[mainWindow.id] = dataForWindow;
-
-  mainWindow.webContents.setAudioMuted(true);
-
-  mainWindow.on('closed', function() {
-    log('browser-window closed..');
-
-    delete global.windowsData[mainWindow.id];
-    mainWindow = null;
-  });
-
-  conversionScript(settingsData, mainWindow, evaluateInWindow, log, converter, respond);
-
-  log(util.format('loading url in browser window: %s', settingsData.url));
-
-  mainWindow.loadUrl(settingsData.url);
 });
-
-function isURLEncoded(url) {
-  return decodeURIComponent(url) !== url;
-}
 
 function respond(err, data) {
   var errMsg = null;
