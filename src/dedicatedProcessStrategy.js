@@ -53,7 +53,7 @@ export default function(options, requestOptions, converterPath, id, cb) {
 
   debugStrategy('saving settings in temporal file..');
 
-  saveFile(tmpDir, settingsFilePath, JSON.stringify(requestOptions), (saveFileErr) => {
+  saveFile(tmpDir, settingsFilePath, JSON.stringify({ ...requestOptions, converterPath }), (saveFileErr) => {
     const childArgs = [];
 
     let debugMode = false,
@@ -73,8 +73,7 @@ export default function(options, requestOptions, converterPath, id, cb) {
     childOpts = {
       env: {
         ELECTRON_WORKER_ID: id,
-        ELECTRON_HTML_TO_SETTINGS_FILE_PATH: settingsFilePath,
-        ELECTRON_HTML_TO_CONVERTER_PATH: converterPath
+        ELECTRON_HTML_TO_SETTINGS_FILE_PATH: settingsFilePath
       },
       stdio: [null, null, null, 'ipc']
     };

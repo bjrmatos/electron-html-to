@@ -24,7 +24,6 @@ var mainWindow = null,
     DEBUG_MODE;
 
 settingsFile = process.env.ELECTRON_HTML_TO_SETTINGS_FILE_PATH;
-converterPath = process.env.ELECTRON_HTML_TO_CONVERTER_PATH;
 WORKER_ID = process.env.ELECTRON_WORKER_ID;
 DEBUG_MODE = Boolean(process.env.ELECTRON_HTML_TO_DEBUGGING);
 
@@ -38,13 +37,14 @@ log = function() {
 
 global.windowsData = {};
 
-log('requiring converter module from ' + converterPath);
-converter = require(converterPath);
-
 log('reading settings file from ' + settingsFile);
 settingsData = fs.readFileSync(settingsFile).toString();
 
 settingsData = JSON.parse(settingsData);
+converterPath = settingsData.converterPath;
+
+log('requiring converter module from ' + converterPath);
+converter = require(converterPath);
 
 Object.keys(settingsData.chromeCommandLineSwitches).forEach(function(switchName) {
   var switchValue = settingsData.chromeCommandLineSwitches[switchName];
