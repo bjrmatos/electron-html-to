@@ -46,14 +46,15 @@ export default function(options, requestOptions, converterPath, id, cb) {
   const {
     tmpDir,
     timeout,
-    pathToElectron
+    pathToElectron,
+    allowLocalFilesAccess
   } = options;
 
   const settingsFilePath = path.resolve(path.join(tmpDir, id + 'settings.html'));
 
   debugStrategy('saving settings in temporal file..');
 
-  saveFile(tmpDir, settingsFilePath, JSON.stringify({ ...requestOptions, converterPath }), (saveFileErr) => {
+  saveFile(tmpDir, settingsFilePath, JSON.stringify({ ...requestOptions, converterPath, allowLocalFilesAccess }), (saveFileErr) => {
     const childArgs = [];
 
     let debugMode = false,
