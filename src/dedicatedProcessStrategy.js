@@ -102,7 +102,7 @@ export default function(options, requestOptions, converterPath, id, cb) {
     child.on('error', (err) => {
       isDone = true;
 
-      debugStrategy('electron process has an error..');
+      debugStrategy('electron process has an error: %s', err.message);
 
       cb(err);
       clearTimeout(timeoutId);
