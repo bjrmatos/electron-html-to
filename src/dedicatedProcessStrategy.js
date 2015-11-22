@@ -99,12 +99,12 @@ export default function(options, requestOptions, converterPath, id, cb) {
     child = childProcess.spawn(electronPath, childArgs, childOpts);
     childIpc = ipc(child);
 
-    child.stderr.on('data', (errData) => {
+    child.on('error', (err) => {
       isDone = true;
 
       debugStrategy('electron process has an error..');
 
-      cb(new Error(errData.toString()));
+      cb(err);
       clearTimeout(timeoutId);
 
       if (child.connected) {
