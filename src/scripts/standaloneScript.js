@@ -90,7 +90,7 @@ app.on('ready', function() {
 
   log('electron process ready..');
 
-  registerProtocol(protocol, settingsData, log, function(registrationErr) {
+  registerProtocol(protocol, settingsData.allowLocalFilesAccess, log, function(registrationErr) {
     if (registrationErr) {
       return respond(registrationErr);
     }

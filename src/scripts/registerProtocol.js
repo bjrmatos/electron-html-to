@@ -6,7 +6,7 @@ function isURLEncoded(url) {
   return decodeURIComponent(url) !== url;
 }
 
-module.exports = function(protocol, settingsData, log, done) {
+module.exports = function(protocol, allowLocalFilesAccess, log, done) {
   var protocolsCompleted = 0;
 
   function resolveRegistration(err) {
@@ -57,11 +57,12 @@ module.exports = function(protocol, settingsData, log, done) {
     log('file protocol request for:', request.url);
 
     // request to the page
-    if (request.url.lastIndexOf(settingsData.url, 0) === 0) {
+    if (url.lastIndexOf('/electron-html-to/', 0) === 0) {
+      url = url.replace('/electron-html-to/', '');
       url = delegateProtocolScheme + url;
       log('handling file protocol request to load the page. response file url:', url);
       callback({ url: url });
-    } else if (request.url.lastIndexOf('file:///', 0) === 0 && !settingsData.allowLocalFilesAccess) {
+    } else if (request.url.lastIndexOf('file:///', 0) === 0 && !allowLocalFilesAccess) {
       // potentially dangerous request
       log('denying access to a file, url:', request.url);
       // Permission to access a resource, other than the network, was denied.
