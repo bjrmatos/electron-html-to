@@ -1,14 +1,12 @@
 /* eslint no-var: [0] */
 
 var util = require('util'),
-    path = require('path'),
     fs = require('fs'),
     app = require('app'),
     renderer = require('ipc'),
     BrowserWindow = require('browser-window'),
-    assign = require('object-assign'),
-    pick = require('lodash.pick'),
     sliced = require('sliced'),
+    getBrowserWindowOpts = require('./getBrowserWindowOpts'),
     registerProtocol = require('./registerProtocol'),
     conversionScript = require('./conversionScript'),
     evaluate = require('./evaluateJS'),
@@ -74,19 +72,7 @@ app.on('ready', function() {
 
   var evaluateInWindow,
       dataForWindow = {},
-      browserWindowOpts,
-      webPreferences;
-
-  var browserWindowDefaults = {
-    width: 600,
-    height: 600
-  };
-
-  var webPreferencesDefaults = {
-    'node-integration': false,
-    javascript: true,
-    'web-security': false
-  };
+      browserWindowOpts;
 
   log('electron process ready..');
 
@@ -119,43 +105,8 @@ app.on('ready', function() {
       log.apply(log, newArgs);
     });
 
-    browserWindowOpts = pick(settingsData.browserWindow || {}, [
-      'width',
-      'height',
-      'x',
-      'y',
-      'use-content-size',
-      'web-preferences'
-    ]);
-
-    browserWindowOpts = assign({}, browserWindowDefaults, browserWindowOpts, {
-      show: false
-    });
-
-    webPreferences = pick(browserWindowOpts['web-preferences'] || {}, [
-      'node-integration',
-      'partition',
-      'zoom-factor',
-      'javascript',
-      'web-security',
-      'allow-displaying-insecure-content',
-      'allow-running-insecure-content',
-      'images',
-      'java',
-      'webgl',
-      'webaudio',
-      'plugins',
-      'experimental-features',
-      'experimental-canvas-features',
-      'overlay-scrollbars',
-      'overlay-fullscreen-video',
-      'shared-worker',
-      'direct-write'
-    ]);
-
-    browserWindowOpts['web-preferences'] = assign({}, webPreferencesDefaults, webPreferences, {
-      preload: path.join(__dirname, 'preload.js')
-    });
+    // get browser window options with defaults
+    browserWindowOpts = getBrowserWindowOpts(settingsData.browserWindow);
 
     log('creating new browser window with options:', browserWindowOpts);
 
