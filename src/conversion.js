@@ -47,11 +47,10 @@ function writeHtml(opt, tmpPath, id, cb) {
   });
 }
 
-function kill() {
-  serverStrategy.kill();
-}
-
 function createConversion(options) {
+  // each conversion instance will create a new electron-workers instance.
+  let serverStrategyCall = serverStrategy(options);
+
   let conversion = (conversionOpts, ...args) => {
     let localOpts = conversionOpts,
         converterPath,
@@ -104,7 +103,8 @@ function createConversion(options) {
         return cb(err);
       }
 
-      localOpts.url = localOpts.url || 'file:///' + encodeURIComponent(localOpts.htmlFile);
+      // prefix the request in order to recognize later in electron protocol handler
+      localOpts.url = localOpts.url || 'file:///electron-html-to/' + encodeURIComponent(localOpts.htmlFile);
       localOpts.chromeCommandLineSwitches = options.chromeCommandLineSwitches;
 
       localOpts.output = {
@@ -117,12 +117,7 @@ function createConversion(options) {
       debugConversion('starting conversion task [strategy:%s][task id:%s] with options:', options.strategy, id, localOpts);
 
       if (options.strategy === 'electron-server') {
-        // right now, no matter how many conversion instances the user creates
-        // each will reuse the same electron-workers instance.
-        // this is the desired behaviour, however if someone need to create a
-        // new electron-workers instance per conversion instance it could be easily supported
-        // changing serverStrategy implementation to return a factory function
-        return serverStrategy(options, localOpts, converterPath, id, cb);
+        return serverStrategyCall(localOpts, converterPath, id, cb);
       }
 
       if (options.strategy === 'dedicated-process') {
@@ -132,6 +127,10 @@ function createConversion(options) {
       cb(new Error('Unsupported strategy ' + options.strategy));
     });
   };
+
+  function kill() {
+    serverStrategyCall.kill();
+  }
 
   conversion.options = options;
   conversion.kill = kill;
