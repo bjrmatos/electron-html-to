@@ -107,10 +107,6 @@ function createConversion(options) {
       localOpts.url = localOpts.url || 'file:///' + encodeURIComponent(localOpts.htmlFile);
       localOpts.chromeCommandLineSwitches = options.chromeCommandLineSwitches;
 
-      if (Object.keys(localOpts.chromeCommandLineSwitches).length === 0) {
-        localOpts.chromeCommandLineSwitches['ignore-certificate-errors'] = null;
-      }
-
       localOpts.output = {
         tmpDir: path.resolve(path.join(options.tmpDir)),
         id: id
