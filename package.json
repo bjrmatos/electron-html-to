@@ -30,7 +30,7 @@
   "dependencies": {
     "body": "5.1.0",
     "debug": "2.2.0",
-    "electron-workers": "1.5.0",
+    "electron-workers": "1.5.1",
     "lodash.pick": "3.1.0",
     "minstache": "1.2.0",
     "mkdirp": "0.5.1",
