@@ -1,6 +1,6 @@
 /* eslint no-var: [0] */
 
-var renderer = require('ipc'),
+var renderer = require('electron').ipcMain,
     assign = require('object-assign');
 
 module.exports = function(settings, browserWindow, evaluate, log, converter, respond) {

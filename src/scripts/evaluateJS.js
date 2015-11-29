@@ -1,7 +1,7 @@
 /* eslint-disable */
 'use strict';
 
-var renderer = require('ipc'),
+var renderer = require('electron').ipcMain,
     sliced = require('sliced'),
     evaluateTemplate = require('./evaluateTemplate');
 

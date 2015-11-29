@@ -2,15 +2,16 @@
 
 var util = require('util'),
     fs = require('fs'),
-    app = require('app'),
-    renderer = require('ipc'),
-    BrowserWindow = require('browser-window'),
+    electron = require('electron'),
     sliced = require('sliced'),
     getBrowserWindowOpts = require('./getBrowserWindowOpts'),
     registerProtocol = require('./registerProtocol'),
     conversionScript = require('./conversionScript'),
     evaluate = require('./evaluateJS'),
-    parentChannel = require('../ipc')(process);
+    parentChannel = require('../ipc')(process),
+    app = electron.app,
+    renderer = electron.ipcMain,
+    BrowserWindow = electron.BrowserWindow;
 
 var mainWindow = null,
     settingsFile,
@@ -68,7 +69,7 @@ if (app.dock && typeof app.dock.hide === 'function') {
 }
 
 app.on('ready', function() {
-  var protocol = require('protocol');
+  var protocol = electron.protocol;
 
   var evaluateInWindow,
       dataForWindow = {},
@@ -137,7 +138,7 @@ app.on('ready', function() {
 
     log(util.format('loading url in browser window: %s', settingsData.url));
 
-    mainWindow.loadUrl(settingsData.url);
+    mainWindow.loadURL(settingsData.url);
   });
 });
 

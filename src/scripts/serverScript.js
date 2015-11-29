@@ -2,16 +2,17 @@
 
 var util = require('util'),
     http = require('http'),
-    app = require('app'),
-    renderer = require('ipc'),
-    BrowserWindow = require('browser-window'),
+    electron = require('electron'),
     jsonBody = require('body/json'),
     sliced = require('sliced'),
     getBrowserWindowOpts = require('./getBrowserWindowOpts'),
     registerProtocol = require('./registerProtocol'),
     conversionScript = require('./conversionScript'),
     evaluate = require('./evaluateJS'),
-    parentChannel = require('../ipc')(process);
+    parentChannel = require('../ipc')(process),
+    app = electron.app,
+    renderer = electron.ipcMain,
+    BrowserWindow = electron.BrowserWindow;
 
 var windows = [],
     log,
@@ -66,7 +67,7 @@ app.on('window-all-closed', function() {
 });
 
 app.on('ready', function() {
-  var protocol = require('protocol');
+  var protocol = electron.protocol;
 
   log('electron process ready..');
 
@@ -211,7 +212,7 @@ function createBrowserWindow(res, settingsData) {
 
   log(util.format('loading url in browser window: %s', settingsData.url));
 
-  currentWindow.loadUrl(settingsData.url);
+  currentWindow.loadURL(settingsData.url);
 }
 
 function addWindow(browserWindow) {

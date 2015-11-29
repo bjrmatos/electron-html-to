@@ -10,9 +10,9 @@ var browserWindowDefaults = {
 };
 
 var webPreferencesDefaults = {
-  'node-integration': false,
+  nodeIntegration: false,
   javascript: true,
-  'web-security': false
+  webSecurity: false
 };
 
 module.exports = function(browserWindowSettings) {
@@ -24,36 +24,36 @@ module.exports = function(browserWindowSettings) {
     'height',
     'x',
     'y',
-    'use-content-size',
-    'web-preferences'
+    'useContentSize',
+    'webPreferences'
   ]);
 
   browserWindowOpts = assign({}, browserWindowDefaults, browserWindowOpts, {
     show: false
   });
 
-  webPreferences = pick(browserWindowOpts['web-preferences'] || {}, [
-    'node-integration',
+  webPreferences = pick(browserWindowOpts.webPreferences || {}, [
+    'nodeIntegration',
     'partition',
-    'zoom-factor',
+    'zoomFactor',
     'javascript',
-    'web-security',
-    'allow-displaying-insecure-content',
-    'allow-running-insecure-content',
+    'webSecurity',
+    'allowDisplayingInsecureContent',
+    'allowRunningInsecureContent',
     'images',
     'java',
     'webgl',
     'webaudio',
     'plugins',
-    'experimental-features',
-    'experimental-canvas-features',
-    'overlay-scrollbars',
-    'overlay-fullscreen-video',
-    'shared-worker',
-    'direct-write'
+    'experimentalFeatures',
+    'experimentalCanvasFeatures',
+    'overlayScrollbars',
+    'overlayFullscreenVideo',
+    'sharedWorker',
+    'directWrite'
   ]);
 
-  browserWindowOpts['web-preferences'] = assign({}, webPreferencesDefaults, webPreferences, {
+  browserWindowOpts.webPreferences = assign({}, webPreferencesDefaults, webPreferences, {
     preload: path.join(__dirname, 'preload.js')
   });
 

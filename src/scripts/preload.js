@@ -3,11 +3,11 @@
   /* eslint-disable */
   window.__electron_html_to = {};
 
-  var remote = require('remote'),
+  var remote = require('electron').remote,
       currentWindow = remote.getCurrentWindow(),
       dataWindow = remote.getGlobal('windowsData')[currentWindow.id];
 
-  __electron_html_to.ipc = require('ipc');
+  __electron_html_to.ipc = require('electron').ipcRenderer;
   __electron_html_to.sliced = require('sliced');
   __electron_html_to.windowId = currentWindow.id;
 

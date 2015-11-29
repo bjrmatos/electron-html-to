@@ -58,7 +58,7 @@ function createConversion(options) {
 
     const conversionOptsDefault = {
       browserWindow: {
-        'web-preferences': {}
+        webPreferences: {}
       },
       waitForJSVarName: 'ELECTRON_HTML_TO_READY'
     };
@@ -81,7 +81,7 @@ function createConversion(options) {
       converterPath = options.converterPath;
     }
 
-    if (localOpts.waitForJS && localOpts.browserWindow['web-preferences'] && localOpts.browserWindow['web-preferences'].javascript === false) {
+    if (localOpts.waitForJS && localOpts.browserWindow.webPreferences && localOpts.browserWindow.webPreferences.javascript === false) {
       throw new Error('can\'t use waitForJS option if browserWindow["web-preferences"].javascript is not activated');
     }
 
