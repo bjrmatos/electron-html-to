@@ -62,7 +62,7 @@ function createConversion(options) {
       browserWindow: {
         'web-preferences': {}
       },
-      waitForJSVarName: 'ELECTRON_HTML_TO_PDF_READY'
+      waitForJSVarName: 'ELECTRON_HTML_TO_READY'
     };
 
     debugConversion('generating new conversion task..');

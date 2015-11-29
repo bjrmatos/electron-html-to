@@ -108,7 +108,7 @@ describe('electron html to pdf', () => {
 
     it('should wait for page js execution', function(done) {
       conversion({
-        html: '<h1>aa</h1><script>window.ELECTRON_HTML_TO_PDF_READY = true;</script>',
+        html: '<h1>aa</h1><script>window.ELECTRON_HTML_TO_READY = true;</script>',
         waitForJS: true
       }, function(err, res) {
         if (err) {
@@ -123,7 +123,7 @@ describe('electron html to pdf', () => {
 
     it('should wait for page async js execution', function(done) {
       conversion({
-        html: '<h1>aa</h1><script>setTimeout(function() { window.ELECTRON_HTML_TO_PDF_READY = true; }, 200);</script>',
+        html: '<h1>aa</h1><script>setTimeout(function() { window.ELECTRON_HTML_TO_READY = true; }, 200);</script>',
         waitForJS: true
       }, function(err, res) {
         if (err) {
