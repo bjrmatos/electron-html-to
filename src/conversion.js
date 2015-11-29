@@ -51,11 +51,9 @@ function createConversion(options) {
   // each conversion instance will create a new electron-workers instance.
   let serverStrategyCall = serverStrategy(options);
 
-  let conversion = (conversionOpts, ...args) => {
+  let conversion = (conversionOpts, cb) => {
     let localOpts = conversionOpts,
         converterPath,
-        customOpts,
-        cb,
         id;
 
     const conversionOptsDefault = {
@@ -77,16 +75,8 @@ function createConversion(options) {
 
     localOpts = { ...conversionOptsDefault, ...localOpts };
 
-    if (args.length > 1) {
-      customOpts = args[0];
-      cb = args[1];
-    } else {
-      customOpts = {};
-      cb = args[0];
-    }
-
-    if (customOpts.converterPath) {
-      converterPath = customOpts.converterPath;
+    if (localOpts.converterPath) {
+      converterPath = localOpts.converterPath;
     } else {
       converterPath = options.converterPath;
     }
