@@ -14,6 +14,7 @@ function conversionFactory(userOptions = {}) {
     timeout: 180000,
     numberOfWorkers: 2,
     chromeCommandLineSwitches: {},
+    allowLocalFilesAccess: false,
     // namespace for tmp dir
     tmpDir: path.join(os.tmpDir(), pkgName + '-tmp-data'),
     strategy: 'electron-server'
