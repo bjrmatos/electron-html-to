@@ -7,7 +7,7 @@ import createConversion from './conversion';
 
 const debugMe = debug(pkgName);
 
-export default function(userOptions = {}) {
+function conversionFactory(userOptions = {}) {
   let conversion;
 
   const optionsDefault = {
@@ -35,3 +35,8 @@ export default function(userOptions = {}) {
 
   return conversion;
 }
+
+conversionFactory.converters = {};
+conversionFactory.converters.PDF = path.resolve(__dirname, './converters/pdf.js');
+
+export default conversionFactory;

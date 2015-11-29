@@ -6,7 +6,7 @@ import convertFactory from '../src/index';
 
 const tmpDir = path.join(__dirname, 'temp');
 const conversion = convertFactory({
-  converterPath: path.resolve(__dirname, '../src/converters/pdf.js'),
+  converterPath: convertFactory.converters.PDF,
   timeout: 10000,
   tmpDir: tmpDir,
   portLeftBoundary: 10000,
