@@ -15,12 +15,12 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
     log('browser window loaded..');
 
     evaluate(function() {
-      var sPhantomHeader = '#electronHeader',
-          sPhantomFooter = '#electronFooter';
+      var sElectronHeader = '#electronHeader',
+          sElectronFooter = '#electronFooter';
 
       return {
-        electronHeader: document.querySelector(sPhantomHeader) ? document.querySelector(sPhantomHeader).innerHTML : null,
-        electronFooter: document.querySelector(sPhantomFooter) ? document.querySelector(sPhantomFooter).innerHTML : null
+        electronHeader: document.querySelector(sElectronHeader) ? document.querySelector(sElectronHeader).innerHTML : null,
+        electronFooter: document.querySelector(sElectronFooter) ? document.querySelector(sElectronFooter).innerHTML : null
       };
     }, function(err, extraContent) {
       /* eslint no-unused-vars: [0] */
