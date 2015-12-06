@@ -1,6 +1,6 @@
 {
   "name": "electron-html-to",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert html to html/image using electron",
   "main": "lib/index.js",
   "scripts": {
