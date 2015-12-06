@@ -1,6 +1,9 @@
 /* eslint no-var: [0] */
 
-var CUSTOM_PROTOCOL = 'electron-html-to';
+var path = require('path'),
+    fs = require('fs'),
+    mime = require('mime-types'),
+    CUSTOM_PROTOCOL = 'electron-html-to';
 
 function isURLEncoded(url) {
   return decodeURIComponent(url) !== url;
@@ -20,8 +23,9 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
 
   protocol.registerStandardSchemes([CUSTOM_PROTOCOL]);
 
-  protocol.registerFileProtocol(CUSTOM_PROTOCOL, function(request, callback) {
-    var url = request.url.substr(CUSTOM_PROTOCOL.length + 3);
+  protocol.registerBufferProtocol(CUSTOM_PROTOCOL, function(request, callback) {
+    var url = request.url.substr(CUSTOM_PROTOCOL.length + 3),
+        mimeType;
 
     log(CUSTOM_PROTOCOL + ' file protocol request for:', request.url);
 
@@ -33,8 +37,17 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
       url = url.slice(1);
     }
 
-    log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url);
-    callback({ path: url });
+    mimeType = mime.lookup(path.extname(url)) || 'text/plain';
+
+    log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url, ', mime:', mimeType);
+
+    fs.readFile(url, function(err, buf) {
+      if (err) {
+        return callback();
+      }
+
+      callback({ data: buf, mimeType: mimeType });
+    });
   }, function(registerProtocolErr) {
     protocolsCompleted++;
 
