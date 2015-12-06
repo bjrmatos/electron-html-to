@@ -2,6 +2,7 @@
 import os from 'os';
 import path from 'path';
 import debug from 'debug';
+import assign from 'object-assign';
 import { name as pkgName } from '../package.json';
 import createConversion from './conversion';
 
@@ -20,7 +21,7 @@ function conversionFactory(userOptions = {}) {
     strategy: 'electron-server'
   };
 
-  const options = { ...optionsDefault, ...userOptions };
+  const options = assign({}, optionsDefault, userOptions);
 
   if (Object.keys(options.chromeCommandLineSwitches).length === 0) {
     options.chromeCommandLineSwitches['ignore-certificate-errors'] = null;

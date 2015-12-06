@@ -2,6 +2,7 @@
 import path from 'path';
 import debug from 'debug';
 import uuid from 'uuid';
+import assign from 'object-assign';
 import { name as pkgName } from '../package.json';
 import saveFile from './saveFile';
 import serverStrategy from './serverStrategy';
@@ -73,7 +74,7 @@ function createConversion(options) {
       };
     }
 
-    localOpts = { ...conversionOptsDefault, ...localOpts };
+    localOpts = assign({}, conversionOptsDefault, localOpts);
 
     if (localOpts.converterPath) {
       converterPath = localOpts.converterPath;
