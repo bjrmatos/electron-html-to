@@ -14,6 +14,7 @@ var util = require('util'),
     BrowserWindow = electron.BrowserWindow;
 
 var mainWindow = null,
+    mainWindowId,
     settingsFile,
     settingsData,
     converterPath,
@@ -116,16 +117,17 @@ app.on('ready', function() {
     }
 
     mainWindow = new BrowserWindow(browserWindowOpts);
+    mainWindowId = mainWindow.id;
 
     evaluateInWindow = evaluate(mainWindow);
-    global.windowsData[mainWindow.id] = dataForWindow;
+    global.windowsData[mainWindowId] = dataForWindow;
 
     mainWindow.webContents.setAudioMuted(true);
 
     mainWindow.on('closed', function() {
       log('browser-window closed..');
 
-      delete global.windowsData[mainWindow.id];
+      delete global.windowsData[mainWindowId];
       mainWindow = null;
     });
 

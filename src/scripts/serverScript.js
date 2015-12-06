@@ -131,7 +131,8 @@ function createBrowserWindow(res, settingsData) {
       browserWindowOpts,
       converterPath,
       converter,
-      currentWindow;
+      currentWindow,
+      currentWindowId;
 
   function respond(err, data) {
     var errMsg = null;
@@ -188,17 +189,18 @@ function createBrowserWindow(res, settingsData) {
   }
 
   currentWindow = new BrowserWindow(browserWindowOpts);
+  currentWindowId = currentWindow.id;
   addWindow(currentWindow);
 
   evaluateInWindow = evaluate(currentWindow);
-  global.windowsData[currentWindow.id] = dataForWindow;
+  global.windowsData[currentWindowId] = dataForWindow;
 
   currentWindow.webContents.setAudioMuted(true);
 
   currentWindow.on('closed', function() {
     log('browser-window closed..');
 
-    delete global.windowsData[currentWindow.id];
+    delete global.windowsData[currentWindowId];
     removeWindow(currentWindow);
     currentWindow = null;
   });
