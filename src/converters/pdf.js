@@ -5,7 +5,7 @@ var path = require('path'),
     assign = require('object-assign'),
     pdfParser = require('../pdfParser');
 
-module.exports = function(log, html, settings, browserWindow, done) {
+module.exports = function(log, settings, browserWindow, done) {
   var pdfDefaults = {
     marginsType: 0,
     pageSize: 'A4',
