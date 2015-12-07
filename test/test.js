@@ -170,6 +170,25 @@ describe('electron html to pdf', () => {
         }
       });
     });
+
+    it('should work with javascript disabled in web page', function(done) {
+      conversion({
+        html: '<h1>foo</h1>',
+        browserWindow: {
+          webPreferences: {
+            javascript: false
+          }
+        }
+      }, function(err, res) {
+        if (!err) {
+          return done(err);
+        }
+
+        should(res.numberOfPages).be.eql(1);
+        should(res.stream).have.property('readable');
+        done();
+      });
+    });
   }
 
 });
