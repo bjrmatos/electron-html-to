@@ -18,6 +18,7 @@ module.exports = function(log, settings, browserWindow, done) {
       pdfOptions = assign({}, pdfDefaults, pdfSettings, { printSelectionOnly: false });
 
   log('before printing..');
+  log('pdf options:', pdfOptions);
 
   browserWindow.printToPDF(pdfOptions, function(err, pdfBuf) {
     var dist = path.join(settings.output.tmpDir, settings.output.id + '.pdf');
