@@ -93,6 +93,10 @@ export default function(options, requestOptions, converterPath, id, cb) {
       childOpts.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
     }
 
+    if (debugMode) {
+      childOpts.stdio = [null, process.stdout, process.stderr, 'ipc'];
+    }
+
     debugStrategy('spawing new electron process..');
     debugStrategy('processing conversion..');
 

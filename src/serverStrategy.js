@@ -69,11 +69,13 @@ function listenLog(worker, workerProcess) {
 }
 
 export default function(options) {
+  let debugMode = false;
   const workersOptions = { ...options, pathToScript: SEVER_SCRIPT_PATH, env: {} };
 
   if (process.env.ELECTRON_HTML_TO_DEBUGGING !== undefined) {
     debugStrategy('electron process debugging mode activated');
 
+    debugMode = true;
     workersOptions.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
   }
 
@@ -81,6 +83,11 @@ export default function(options) {
   workersOptions.env.allowLocalFilesAccess = JSON.stringify(options.allowLocalFilesAccess || false);
 
   workersOptions.stdio = [null, null, null, 'ipc'];
+
+  if (debugMode) {
+    workersOptions.stdio = [null, process.stdout, process.stderr, 'ipc'];
+  }
+
   workersOptions.killSignal = 'SIGKILL';
 
   const workers = electronWorkers(workersOptions);
