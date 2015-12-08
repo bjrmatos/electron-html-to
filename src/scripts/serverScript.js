@@ -132,7 +132,8 @@ function createBrowserWindow(res, settingsData) {
       converterPath,
       converter,
       currentWindow,
-      currentWindowId;
+      currentWindowId,
+      extraHeaders = '';
 
   function respond(err, data) {
     var errMsg = null;
@@ -212,9 +213,21 @@ function createBrowserWindow(res, settingsData) {
     currentWindow.webContents.setUserAgent(settingsData.userAgent);
   }
 
-  log(util.format('loading url in browser window: %s', settingsData.url));
+  if (typeof settingsData.extraHeaders === 'object') {
+    Object.keys(settingsData.extraHeaders).forEach(function(key) {
+      extraHeaders += key + ': ' + settingsData.extraHeaders[key] + '\n';
+    });
+  }
 
-  currentWindow.loadURL(settingsData.url);
+  log(util.format('loading url in browser window: %s, with headers: %s', settingsData.url, extraHeaders));
+
+  if (extraHeaders) {
+    currentWindow.loadURL(settingsData.url, {
+      extraHeaders: extraHeaders
+    });
+  } else {
+    currentWindow.loadURL(settingsData.url);
+  }
 }
 
 function addWindow(browserWindow) {

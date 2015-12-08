@@ -79,6 +79,8 @@ app.on('ready', function() {
   log('electron process ready..');
 
   registerProtocol(protocol, settingsData.allowLocalFilesAccess, log, function(registrationErr) {
+    var extraHeaders = '';
+
     if (registrationErr) {
       return respond(registrationErr);
     }
@@ -138,9 +140,21 @@ app.on('ready', function() {
       mainWindow.webContents.setUserAgent(settingsData.userAgent);
     }
 
-    log(util.format('loading url in browser window: %s', settingsData.url));
+    if (typeof settingsData.extraHeaders === 'object') {
+      Object.keys(settingsData.extraHeaders).forEach(function(key) {
+        extraHeaders += key + ': ' + settingsData.extraHeaders[key] + '\n';
+      });
+    }
 
-    mainWindow.loadURL(settingsData.url);
+    log(util.format('loading url in browser window: %s, with headers: %s', settingsData.url, extraHeaders));
+
+    if (extraHeaders) {
+      mainWindow.loadURL(settingsData.url, {
+        extraHeaders: extraHeaders
+      });
+    } else {
+      mainWindow.loadURL(settingsData.url);
+    }
   });
 });
 

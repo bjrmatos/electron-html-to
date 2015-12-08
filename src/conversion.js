@@ -97,6 +97,7 @@ function createConversion(options) {
       // prefix the request in order to recognize later in electron protocol handler
       localOpts.url = localOpts.url || 'file:///electron-html-to/' + encodeURIComponent(localOpts.htmlFile);
       localOpts.chromeCommandLineSwitches = options.chromeCommandLineSwitches;
+      localOpts.extraHeaders = localOpts.extraHeaders || {};
 
       localOpts.output = {
         tmpDir: path.resolve(path.join(options.tmpDir)),

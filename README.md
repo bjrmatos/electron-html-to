@@ -75,6 +75,11 @@ conversion({
   waitForJS: true, // set to true to enable programmatically specify (via Javascript of the page) when the conversion starts (see Programmatic conversion section for an example)
   waitForJSVarName: 'MY_CUSTOM_VAR_NAME', // name of the variable that will be used as the conversion trigger, defaults to "ELECTRON_HTML_TO_READY" (see Programmatic pdf printing section for an example)
   userAgent: 'CUSTOM_USER_AGENT', // set a custom user agent to use in electron's browser window
+  /* custom extra headers to load the html or url */
+  extraHeaders: {
+    'X-Foo': 'foo', 
+    'X-Bar': 'bar'
+  },
   converterPath: '/path/to/a/converter.js', // absolute path to the converter function to use in the local conversion, if no specified the global converterPath option will be used
   
   // options for electron's browser window, see http://electron.atom.io/docs/v0.35.0/api/browser-window/ for details for each option.
