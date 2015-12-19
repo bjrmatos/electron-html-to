@@ -231,6 +231,9 @@ function createBrowserWindow(res, settingsData) {
   } else {
     currentWindow.loadURL(settingsData.url);
   }
+
+  // useful in windows to prevent the electron process to hang..
+  currentWindow.focus();
 }
 
 function addWindow(browserWindow) {

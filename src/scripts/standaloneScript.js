@@ -159,6 +159,9 @@ app.on('ready', function() {
     } else {
       mainWindow.loadURL(settingsData.url);
     }
+
+    // useful in windows to prevent the electron process to hang..
+    mainWindow.focus();
   });
 });
 
