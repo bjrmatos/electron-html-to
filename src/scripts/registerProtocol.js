@@ -25,7 +25,8 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
 
   protocol.registerBufferProtocol(CUSTOM_PROTOCOL, function(request, callback) {
     var url = request.url.substr(CUSTOM_PROTOCOL.length + 3),
-        mimeType;
+        mimeType,
+        fileBuf;
 
     log(CUSTOM_PROTOCOL + ' file protocol request for:', request.url);
 
@@ -41,13 +42,25 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
 
     log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url, ', mime:', mimeType);
 
-    fs.readFile(url, function(err, buf) {
-      if (err) {
-        return callback();
+    if (process.env.IISNODE_VERSION !== undefined) {
+      // when running in IISNODE electron hangs when using fs.readFile, fs.createReadStream
+      // or any async API for read a file, the only option is to read the file in a synchronous way
+      try {
+        fileBuf = fs.readFileSync(url);
+        callback({ data: fileBuf, mimeType: mimeType });
+      } catch (err) {
+        callback();
       }
+    } else {
+      fs.readFile(url, function(err, buf) {
+        if (err) {
+          return callback();
+        }
 
-      callback({ data: buf, mimeType: mimeType });
-    });
+        fileBuf = buf;
+        callback({ data: fileBuf, mimeType: mimeType });
+      });
+    }
   }, function(registerProtocolErr) {
     protocolsCompleted++;
 

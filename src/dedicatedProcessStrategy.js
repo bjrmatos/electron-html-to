@@ -93,6 +93,11 @@ export default function(options, requestOptions, converterPath, id, cb) {
       childOpts.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
     }
 
+    if (process.env.IISNODE_VERSION !== undefined) {
+      debugStrategy('running in IISNODE..');
+      childOpts.env.IISNODE_VERSION = process.env.IISNODE_VERSION;
+    }
+
     if (debugMode) {
       childOpts.stdio = [null, process.stdout, process.stderr, 'ipc'];
     }

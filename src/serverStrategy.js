@@ -77,6 +77,10 @@ export default function(options) {
     workersOptions.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
   }
 
+  if (process.env.IISNODE_VERSION !== undefined) {
+    workersOptions.env.IISNODE_VERSION = process.env.IISNODE_VERSION;
+  }
+
   workersOptions.env.chromeCommandLineSwitches = JSON.stringify(options.chromeCommandLineSwitches || {});
   workersOptions.env.allowLocalFilesAccess = JSON.stringify(options.allowLocalFilesAccess || false);
 
@@ -95,6 +99,10 @@ export default function(options) {
 
     if (debugMode) {
       debugStrategy('electron process debugging mode activated');
+    }
+
+    if (process.env.IISNODE_VERSION !== undefined) {
+      debugStrategy('running in IISNODE..');
     }
 
     debugStrategy('checking if electron workers have started..');
