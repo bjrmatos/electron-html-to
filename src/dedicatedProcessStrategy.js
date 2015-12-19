@@ -104,6 +104,10 @@ export default function(options, requestOptions, converterPath, id, cb) {
     childIpc = ipc(child);
 
     child.on('error', (err) => {
+      if (isDone) {
+        return;
+      }
+
       isDone = true;
 
       debugStrategy('electron process has an error: %s', err.message);
