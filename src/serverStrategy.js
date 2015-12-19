@@ -73,8 +73,6 @@ export default function(options) {
   const workersOptions = { ...options, pathToScript: SEVER_SCRIPT_PATH, env: {} };
 
   if (process.env.ELECTRON_HTML_TO_DEBUGGING !== undefined) {
-    debugStrategy('electron process debugging mode activated');
-
     debugMode = true;
     workersOptions.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
   }
@@ -94,6 +92,10 @@ export default function(options) {
 
   function serverStrategyCall(requestOptions, converterPath, id, cb) {
     let executeOpts = {};
+
+    if (debugMode) {
+      debugStrategy('electron process debugging mode activated');
+    }
 
     debugStrategy('checking if electron workers have started..');
 
