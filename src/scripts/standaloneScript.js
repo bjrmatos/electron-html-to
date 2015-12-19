@@ -114,6 +114,10 @@ app.on('ready', function() {
 
     log('creating new browser window with options:', browserWindowOpts);
 
+    if (DEBUG_MODE) {
+      browserWindowOpts.show = true;
+    }
+
     if (browserWindowOpts.show) {
       log('browser window visibility activated');
     }
@@ -173,12 +177,11 @@ function respond(err, data) {
     return;
   }
 
-  if (DEBUG_MODE) {
-    // in debug mode, don't destroy the browser window
-    mainWindow.show();
-    // mainWindow.openDevTools();
-  } else {
+  // in debug mode, don't destroy the browser window
+  if (!DEBUG_MODE) {
     log('destroying browser window..');
     mainWindow.destroy();
   }
+
+  // else -> mainWindow.openDevTools();
 }

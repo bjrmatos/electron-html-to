@@ -153,14 +153,13 @@ function createBrowserWindow(res, settingsData) {
       return;
     }
 
-    if (DEBUG_MODE) {
-      // in debug mode, don't destroy the browser window
-      currentWindow.show();
-      // mainWindow.openDevTools();
-    } else {
+    // in debug mode, don't destroy the browser window
+    if (!DEBUG_MODE) {
       log('destroying browser window..');
       currentWindow.destroy();
     }
+
+    // else -> currentWindow.openDevTools();
   }
 
   converterPath = settingsData.converterPath;
@@ -184,6 +183,10 @@ function createBrowserWindow(res, settingsData) {
   browserWindowOpts = getBrowserWindowOpts(settingsData.browserWindow);
 
   log('creating new browser window with options:', browserWindowOpts);
+
+  if (DEBUG_MODE) {
+    browserWindowOpts.show = true;
+  }
 
   if (browserWindowOpts.show) {
     log('browser window visibility activated');
