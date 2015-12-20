@@ -1,2 +1,3 @@
 lib
 **/node_modules
+src/pdfParser/pdf.combined.js
