@@ -13,7 +13,7 @@ global.PDFJS = {
 
 global.DOMParser = DOMParserMock;
 
-require('pdfjs-dist/build/pdf.combined.js');
+require('./pdf.combined.js');
 
 module.exports = function parsePDF(pdfBuf, cb) {
   var pdfData;
