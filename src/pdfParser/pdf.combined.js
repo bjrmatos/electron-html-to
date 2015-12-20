@@ -7083,7 +7083,9 @@ var PDFWorker = (function PDFWorkerClosure() {
       // In the developer build load worker_loader which in turn loads all the
       // other files and resolves the promise. In production only the
       // pdf.worker.js file is needed.
-      PDFJS.fakeWorkerFilesLoadedCapability.resolve();
+      setTimeout(function() {
+        PDFJS.fakeWorkerFilesLoadedCapability.resolve();
+      }, 0);
     }
     return PDFJS.fakeWorkerFilesLoadedCapability.promise;
   }
