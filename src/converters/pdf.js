@@ -40,16 +40,29 @@ module.exports = function(log, settings, browserWindow, done) {
         return done(pdfParseErr);
       }
 
-      fs.writeFile(dist, pdfBuf, function(saveErr) {
-        if (saveErr) {
-          return done(saveErr);
-        }
+      if (process.env.IISNODE_VERSION !== undefined) {
+        try {
+          fs.writeFileSync(dist, pdfBuf);
 
-        done(null, {
-          numberOfPages: pdfDoc.numPages,
-          output: dist
+          done(null, {
+            numberOfPages: pdfDoc.numPages,
+            output: dist
+          });
+        } catch (saveErr) {
+          done(saveErr);
+        }
+      } else {
+        fs.writeFile(dist, pdfBuf, function(saveErr) {
+          if (saveErr) {
+            return done(saveErr);
+          }
+
+          done(null, {
+            numberOfPages: pdfDoc.numPages,
+            output: dist
+          });
         });
-      });
+      }
     });
   });
 };
