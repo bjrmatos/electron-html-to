@@ -40,7 +40,10 @@ module.exports = function(log, settings, browserWindow, done) {
         return done(pdfParseErr);
       }
 
-      if (process.env.IISNODE_VERSION !== undefined) {
+      // when running in IISNODE electron hangs when using fs.readFile, fs.createReadStream
+      // or any async API for read a file.. on normal windows + node electron consumes 100% CPU when
+      // using any async file API, so the only/best option is to read the file in a synchronous way
+      if (process.platform === 'win32') {
         try {
           fs.writeFileSync(dist, pdfBuf);
 

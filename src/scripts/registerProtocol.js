@@ -42,9 +42,10 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
 
     log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url, ', mime:', mimeType);
 
-    if (process.env.IISNODE_VERSION !== undefined) {
+    if (process.platform === 'win32') {
       // when running in IISNODE electron hangs when using fs.readFile, fs.createReadStream
-      // or any async API for read a file, the only option is to read the file in a synchronous way
+      // or any async API for read a file.. on normal windows + node electron consumes 100% CPU when
+      // using any async file API, so the only/best option is to read the file in a synchronous way
       try {
         fileBuf = fs.readFileSync(url);
         callback({ data: fileBuf, mimeType: mimeType });
