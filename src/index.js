@@ -12,7 +12,7 @@ function conversionFactory(userOptions = {}) {
   let conversion;
 
   const optionsDefault = {
-    timeout: 180000,
+    timeout: 10000,
     numberOfWorkers: 2,
     chromeCommandLineSwitches: {},
     allowLocalFilesAccess: false,
