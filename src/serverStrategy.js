@@ -7,7 +7,7 @@ import electronWorkers from 'electron-workers';
 import ipc from './ipc';
 import { name as pkgName } from '../package.json';
 
-const SEVER_SCRIPT_PATH = path.join(__dirname, 'scripts', 'serverScript.js'),
+const SERVER_SCRIPT_PATH = path.join(__dirname, 'scripts', 'serverScript.js'),
       debugStrategy = debug(pkgName + ':electron-server-strategy'),
       debugElectronLog = debug(pkgName + ':electron-log'),
       debugPage = debug(pkgName + ':page');
@@ -70,7 +70,7 @@ function listenLog(worker, workerProcess) {
 
 export default function(options) {
   let debugMode = false;
-  const workersOptions = { ...options, pathToScript: SEVER_SCRIPT_PATH, env: {} };
+  const workersOptions = { ...options, pathToScript: SERVER_SCRIPT_PATH, env: {} };
 
   if (process.env.ELECTRON_HTML_TO_DEBUGGING !== undefined) {
     debugMode = true;
