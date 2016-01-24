@@ -18,7 +18,7 @@ function conversionFactory(userOptions = {}) {
     allowLocalFilesAccess: false,
     // namespace for tmp dir
     tmpDir: path.join(os.tmpDir(), pkgName + '-tmp-data'),
-    strategy: 'electron-server'
+    strategy: 'electron-ipc'
   };
 
   const options = assign({}, optionsDefault, userOptions);
