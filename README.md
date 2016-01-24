@@ -60,8 +60,8 @@ var conversion = require('electron-html-to')({
   },
   /* use rather dedicated process for every conversion, 
     dedicated-process strategy is quite slower but can solve some bugs 
-    with corporate proxy. defaults to electron-server strategy */ 
-  strategy: 'electron-server | dedicated-process'
+    with corporate proxy. for a description of `electron-server` and `electron-ipc` strategy see [electron-workers docs](https://github.com/bjrmatos/electron-workers/#modes). defaults to electron-ipc strategy */ 
+  strategy: 'electron-ipc | electron-server | dedicated-process'
 });
 ```
 
