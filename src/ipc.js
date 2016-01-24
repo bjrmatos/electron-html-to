@@ -13,6 +13,17 @@ function IPC(processObj) {
   }
 
   processObj.on('message', function(data) {
+    var shouldIgnore = false;
+
+    // not handling electron-workers events here
+    if (data) {
+      shouldIgnore = data.workerEvent === 'ping' || data.workerEvent === 'pong' || data.workerEvent === 'task';
+
+      if (shouldIgnore) {
+        return;
+      }
+    }
+
     emit.apply(emitter, sliced(data));
   });
 

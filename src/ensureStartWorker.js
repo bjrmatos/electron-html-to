@@ -1,0 +1,64 @@
+
+import debug from 'debug';
+import sliced from 'sliced';
+import ipc from './ipc';
+import { name as pkgName } from '../package.json';
+
+const debugPage = debug(pkgName + ':page'),
+      debugElectronLog = debug(pkgName + ':electron-log');
+
+function listenLog(debugStrategy, worker, workerProcess) {
+  let workerIpc = ipc(workerProcess);
+
+  debugStrategy('establishing listeners for electron logs in worker [' + worker.id + ']..');
+
+  workerIpc.on('page-error', (windowId, errMsg, errStack) => {
+    debugPage('An error has ocurred in browser window [%s]: message: %s stack: %s', windowId, errMsg, errStack);
+  });
+
+  workerIpc.on('page-log', function() {
+    let newArgs = sliced(arguments),
+        windowId = newArgs.splice(0, 1);
+
+    newArgs.unshift('console log from browser window [' + windowId + ']:');
+    debugPage.apply(debugPage, newArgs);
+  });
+
+  workerIpc.on('log', function() {
+    debugElectronLog.apply(debugElectronLog, sliced(arguments));
+  });
+}
+
+export default function ensureStart(debugStrategy, workers, instance, cb) {
+  if (instance.started) {
+    return cb();
+  }
+
+  instance.startCb.push(cb);
+
+  if (instance.starting) {
+    return;
+  }
+
+  debugStrategy('starting electron workers..');
+
+  instance.starting = true;
+
+  workers.on('workerProcessCreated', (worker, workerProcess) => {
+    listenLog(debugStrategy, worker, workerProcess);
+  });
+
+  workers.start((startErr) => {
+    instance.starting = false;
+
+    if (startErr) {
+      instance.startCb.forEach((callback) => callback(startErr) );
+      return;
+    }
+
+    debugStrategy('electron workers started successfully..');
+
+    instance.started = true;
+    instance.startCb.forEach((callback) => callback());
+  });
+}

@@ -31,7 +31,7 @@
   "dependencies": {
     "body": "5.1.0",
     "debug": "2.2.0",
-    "electron-workers": "1.5.1",
+    "electron-workers": "1.6.0-rc2",
     "lodash.pick": "3.1.0",
     "mime-types": "2.1.8",
     "minstache": "1.2.0",

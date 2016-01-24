@@ -5,7 +5,7 @@ import uuid from 'uuid';
 import assign from 'object-assign';
 import { name as pkgName } from '../package.json';
 import saveFile from './saveFile';
-import serverStrategy from './serverStrategy';
+import serverIpcStrategy from './serverIpcStrategy';
 import dedicatedProcessStrategy from './dedicatedProcessStrategy';
 
 const debugConversion = debug(pkgName + ':conversion');
@@ -49,8 +49,16 @@ function writeHtml(opt, tmpPath, id, cb) {
 }
 
 function createConversion(options) {
+  let mode;
+
+  if (options.strategy === 'electron-server') {
+    mode = 'server';
+  } else if (options.strategy === 'electron-ipc') {
+    mode = 'ipc';
+  }
+
   // each conversion instance will create a new electron-workers instance.
-  let serverStrategyCall = serverStrategy(options);
+  let serverIpcStrategyCall = serverIpcStrategy(mode, options);
 
   let conversion = (conversionOpts, cb) => {
     let localOpts = conversionOpts,
@@ -108,8 +116,8 @@ function createConversion(options) {
 
       debugConversion('starting conversion task [strategy:%s][task id:%s] with options:', options.strategy, id, localOpts);
 
-      if (options.strategy === 'electron-server') {
-        return serverStrategyCall(localOpts, converterPath, id, cb);
+      if (options.strategy === 'electron-server' || options.strategy === 'electron-ipc') {
+        return serverIpcStrategyCall(localOpts, converterPath, id, cb);
       }
 
       if (options.strategy === 'dedicated-process') {
@@ -121,7 +129,7 @@ function createConversion(options) {
   };
 
   function kill() {
-    serverStrategyCall.kill();
+    serverIpcStrategyCall.kill();
   }
 
   conversion.options = options;
