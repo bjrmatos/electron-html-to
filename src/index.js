@@ -12,13 +12,13 @@ function conversionFactory(userOptions = {}) {
   let conversion;
 
   const optionsDefault = {
-    timeout: 180000,
+    timeout: 10000,
     numberOfWorkers: 2,
     chromeCommandLineSwitches: {},
     allowLocalFilesAccess: false,
     // namespace for tmp dir
     tmpDir: path.join(os.tmpDir(), pkgName + '-tmp-data'),
-    strategy: 'electron-server'
+    strategy: 'electron-ipc'
   };
 
   const options = assign({}, optionsDefault, userOptions);

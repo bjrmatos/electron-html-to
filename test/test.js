@@ -5,13 +5,17 @@ import should from 'should';
 import convertFactory from '../src/index';
 
 const tmpDir = path.join(__dirname, 'temp');
-const conversion = convertFactory({
-  converterPath: convertFactory.converters.PDF,
-  timeout: 10000,
-  tmpDir: tmpDir,
-  portLeftBoundary: 10000,
-  portRightBoundary: 15000
-});
+
+function createConversion(strategy) {
+  return convertFactory({
+    converterPath: convertFactory.converters.PDF,
+    timeout: 10000,
+    tmpDir: tmpDir,
+    portLeftBoundary: 10000,
+    portRightBoundary: 15000,
+    strategy: strategy
+  });
+}
 
 function rmDir(dirPath) {
   let files;
@@ -39,7 +43,6 @@ function rmDir(dirPath) {
 
 /* eslint padded-blocks: [0] */
 describe('electron html to pdf', () => {
-
   describe('dedicated-process', () => {
     common('dedicated-process');
   });
@@ -48,10 +51,12 @@ describe('electron html to pdf', () => {
     common('electron-server');
   });
 
+  describe('electron-ipc', () => {
+    common('electron-ipc');
+  });
+
   function common(strategy) {
-    beforeEach(() => {
-      conversion.options.strategy = strategy;
-    });
+    let conversion = createConversion(strategy);
 
     after(() => {
       rmDir(tmpDir);

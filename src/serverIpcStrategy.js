@@ -2,75 +2,35 @@
 import path from 'path';
 import fs from 'fs';
 import debug from 'debug';
-import sliced from 'sliced';
 import electronWorkers from 'electron-workers';
-import ipc from './ipc';
+import ensureStart from './ensureStartWorker';
 import { name as pkgName } from '../package.json';
 
-const SEVER_SCRIPT_PATH = path.join(__dirname, 'scripts', 'serverScript.js'),
-      debugStrategy = debug(pkgName + ':electron-server-strategy'),
-      debugElectronLog = debug(pkgName + ':electron-log'),
-      debugPage = debug(pkgName + ':page');
+const debugServerStrategy = debug(pkgName + ':electron-server-strategy'),
+      debugIpcStrategy = debug(pkgName + ':electron-ipc-strategy');
 
-function ensureStart(workers, instance, cb) {
-  if (instance.started) {
-    return cb();
+export default function(mode, options) {
+  let debugMode = false,
+      scriptPath,
+      debugStrategy;
+
+  if (mode === 'server') {
+    scriptPath = path.join(__dirname, 'scripts', 'serverScript.js');
+    debugStrategy = debugServerStrategy;
+  } else if (mode === 'ipc') {
+    scriptPath = path.join(__dirname, 'scripts', 'ipcScript.js');
+    debugStrategy = debugIpcStrategy;
+  } else {
+    // defaults to server script and a no-op function
+    scriptPath = path.join(__dirname, 'scripts', 'serverScript.js');
+    debugStrategy = () => {};
   }
 
-  instance.startCb.push(cb);
+  const workersOptions = { ...options, pathToScript: scriptPath, env: {} };
 
-  if (instance.starting) {
-    return;
+  if (mode) {
+    workersOptions.connectionMode = mode;
   }
-
-  debugStrategy('starting electron workers..');
-
-  instance.starting = true;
-
-  workers.on('workerProcessCreated', (worker, workerProcess) => {
-    listenLog(worker, workerProcess);
-  });
-
-  workers.start((startErr) => {
-    instance.starting = false;
-
-    if (startErr) {
-      instance.startCb.forEach((callback) => callback(startErr) );
-      return;
-    }
-
-    debugStrategy('electron workers started successfully..');
-
-    instance.started = true;
-    instance.startCb.forEach((callback) => callback());
-  });
-}
-
-function listenLog(worker, workerProcess) {
-  let workerIpc = ipc(workerProcess);
-
-  debugStrategy('establishing listeners for electron logs in worker [' + worker.id + ']..');
-
-  workerIpc.on('page-error', (windowId, errMsg, errStack) => {
-    debugPage('An error has ocurred in browser window [%s]: message: %s stack: %s', windowId, errMsg, errStack);
-  });
-
-  workerIpc.on('page-log', function() {
-    let newArgs = sliced(arguments),
-        windowId = newArgs.splice(0, 1);
-
-    newArgs.unshift('console log from browser window [' + windowId + ']:');
-    debugPage.apply(debugPage, newArgs);
-  });
-
-  workerIpc.on('log', function() {
-    debugElectronLog.apply(debugElectronLog, sliced(arguments));
-  });
-}
-
-export default function(options) {
-  let debugMode = false;
-  const workersOptions = { ...options, pathToScript: SEVER_SCRIPT_PATH, env: {} };
 
   if (process.env.ELECTRON_HTML_TO_DEBUGGING !== undefined) {
     debugMode = true;
@@ -94,7 +54,7 @@ export default function(options) {
 
   const workers = electronWorkers(workersOptions);
 
-  function serverStrategyCall(requestOptions, converterPath, id, cb) {
+  function serverIpcStrategyCall(requestOptions, converterPath, id, cb) {
     let executeOpts = {};
 
     if (debugMode) {
@@ -107,7 +67,7 @@ export default function(options) {
 
     debugStrategy('checking if electron workers have started..');
 
-    ensureStart(workers, serverStrategyCall, (err) => {
+    ensureStart(debugStrategy, workers, serverIpcStrategyCall, (err) => {
       if (err) {
         debugStrategy('electron workers could not start..');
         debugStrategy('conversion ended with error..');
@@ -147,19 +107,19 @@ export default function(options) {
     });
   }
 
-  serverStrategyCall.startCb = [];
+  serverIpcStrategyCall.startCb = [];
 
-  serverStrategyCall.kill = () => {
-    debugStrategy('killing electron workers..');
-
-    if (!serverStrategyCall.started) {
+  serverIpcStrategyCall.kill = () => {
+    if (!serverIpcStrategyCall.started) {
       return;
     }
 
-    serverStrategyCall.started = false;
-    serverStrategyCall.startCb = [];
+    debugStrategy('killing electron workers..');
+
+    serverIpcStrategyCall.started = false;
+    serverIpcStrategyCall.startCb = [];
     workers.kill();
   };
 
-  return serverStrategyCall;
+  return serverIpcStrategyCall;
 }

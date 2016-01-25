@@ -1,6 +1,6 @@
 {
   "name": "electron-html-to",
-  "version": "1.1.4",
+  "version": "2.0.0-rc1",
   "description": "Convert html to html/image using electron",
   "main": "lib/index.js",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "body": "5.1.0",
     "debug": "2.2.0",
-    "electron-workers": "1.5.1",
+    "electron-workers": "1.6.0",
     "lodash.pick": "3.1.0",
     "mime-types": "2.1.8",
     "minstache": "1.2.0",
