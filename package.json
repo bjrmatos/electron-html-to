@@ -32,7 +32,7 @@
     "body": "5.1.0",
     "debug": "2.2.0",
     "electron-workers": "1.6.0",
-    "lodash.pick": "3.1.0",
+    "lodash.pick": "4.0.1",
     "mime-types": "2.1.8",
     "minstache": "1.2.0",
     "mkdirp": "0.5.1",
