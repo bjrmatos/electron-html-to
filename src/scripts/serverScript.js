@@ -158,8 +158,6 @@ function createBrowserWindow(res, settingsData) {
       log('destroying browser window..');
       currentWindow.destroy();
     }
-
-    // else -> currentWindow.openDevTools();
   }
 
   converterPath = settingsData.converterPath;

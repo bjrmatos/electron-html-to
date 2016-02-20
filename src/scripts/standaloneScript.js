@@ -185,6 +185,4 @@ function respond(err, data) {
     log('destroying browser window..');
     mainWindow.destroy();
   }
-
-  // else -> mainWindow.openDevTools();
 }

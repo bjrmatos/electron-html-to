@@ -103,7 +103,7 @@ function createConversion(options) {
       }
 
       // prefix the request in order to recognize later in electron protocol handler
-      localOpts.url = localOpts.url || 'file:///electron-html-to/' + encodeURIComponent(localOpts.htmlFile);
+      localOpts.url = localOpts.url || 'file://' + localOpts.htmlFile + '?ELECTRON-HTML-TO-LOAD-PAGE';
       localOpts.chromeCommandLineSwitches = options.chromeCommandLineSwitches;
       localOpts.extraHeaders = localOpts.extraHeaders || {};
 

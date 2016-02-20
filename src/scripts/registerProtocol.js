@@ -1,34 +1,56 @@
 /* eslint no-var: [0] */
 
 var path = require('path'),
+    urlModule = require('url'),
     fs = require('fs'),
-    mime = require('mime-types'),
-    CUSTOM_PROTOCOL = 'electron-html-to';
+    request = require('request'),
+    mime = require('mime-types');
 
 function isURLEncoded(url) {
   return decodeURIComponent(url) !== url;
 }
 
-module.exports = function(protocol, allowLocalFilesAccess, log, done) {
-  var protocolsCompleted = 0;
+module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
+  protocol.interceptBufferProtocol('file', function(requestObj, callback) {
+    var url = requestObj.url.substr(7),
+        parsedUrl = urlModule.parse(requestObj.url, true);
 
-  function resolveRegistration(err) {
-    if (resolveRegistration.called) {
-      return;
+    log('file protocol request for:', requestObj.url);
+
+    // request to the page
+    if (parsedUrl.query && parsedUrl.query['ELECTRON-HTML-TO-LOAD-PAGE'] != null) {
+      log('request to load the page:', url);
+      resolveFileRequest(url, callback);
+    } else if (requestObj.url.lastIndexOf('file:///', 0) === 0 && !allowLocalFilesAccess) {
+      // potentially dangerous request
+      log('denying access to a file, url:', requestObj.url);
+      // Permission to access a resource, other than the network, was denied.
+      // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
+      callback(-10);
+    } else if (requestObj.url.lastIndexOf('file://', 0) === 0 && requestObj.url.lastIndexOf('file:///', 0) !== 0) {
+      // support cdn like format -> //cdn.jquery...
+      url = 'http://' + url;
+      log('handling cdn format request, url:', url);
+      resolveCDNLikeRequest(url, callback);
+    } else {
+      log('request to load a file:', url);
+      resolveFileRequest(url, callback);
+    }
+  }, function(interceptProtocolErr) {
+    if (interceptProtocolErr) {
+      log('electron fails to register file protocol');
+      return ready(interceptProtocolErr);
     }
 
-    resolveRegistration.called = true;
-    done(err);
-  }
+    log('interception for file protocol register successfully');
 
-  protocol.registerStandardSchemes([CUSTOM_PROTOCOL]);
+    ready(null);
+  });
 
-  protocol.registerBufferProtocol(CUSTOM_PROTOCOL, function(request, callback) {
-    var url = request.url.substr(CUSTOM_PROTOCOL.length + 3),
+  function resolveFileRequest(requestedUrl, done) {
+    var url = requestedUrl,
         mimeType,
         fileBuf;
-
-    log(CUSTOM_PROTOCOL + ' file protocol request for:', request.url);
 
     if (isURLEncoded(url)) {
       url = decodeURIComponent(url);
@@ -38,9 +60,10 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
       url = url.slice(1);
     }
 
+    url = urlModule.parse(url).pathname;
     mimeType = mime.lookup(path.extname(url)) || 'text/plain';
 
-    log('handling ' + CUSTOM_PROTOCOL + ' file protocol request. response file path:', url, ', mime:', mimeType);
+    log('resolving file protocol request. response file url:', url, 'mime type:', mimeType);
 
     if (process.platform === 'win32') {
       // when running in IISNODE electron hangs when using fs.readFile, fs.createReadStream
@@ -48,75 +71,42 @@ module.exports = function(protocol, allowLocalFilesAccess, log, done) {
       // using any async file API, so the only/best option is to read the file in a synchronous way
       try {
         fileBuf = fs.readFileSync(url);
-        callback({ data: fileBuf, mimeType: mimeType });
+        done({ data: fileBuf, mimeType: mimeType });
       } catch (err) {
-        callback();
+        // A generic failure occurred.
+        // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
+        done(-2);
       }
     } else {
       fs.readFile(url, function(err, buf) {
         if (err) {
-          return callback();
+          // A generic failure occurred.
+          // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
+          return done(-2);
         }
 
         fileBuf = buf;
-        callback({ data: fileBuf, mimeType: mimeType });
+        done({ data: fileBuf, mimeType: mimeType });
       });
     }
-  }, function(registerProtocolErr) {
-    protocolsCompleted++;
+  }
 
-    if (registerProtocolErr) {
-      log('electron fails to register "' + CUSTOM_PROTOCOL + '" file protocol');
-      return resolveRegistration(registerProtocolErr);
-    }
+  function resolveCDNLikeRequest(requestedUrl, done) {
+    var url = urlModule.parse(requestedUrl).pathname,
+        mimeType = mime.lookup(path.extname(url)) || 'text/plain';
 
-    log('registration for custom file protocol "' + CUSTOM_PROTOCOL + '" was successfully');
+    log('resolving cnd like request:', requestedUrl, 'mime type:', mimeType);
 
-    if (protocolsCompleted === 2) {
-      resolveRegistration(null);
-    }
-  });
-
-  protocol.interceptHttpProtocol('file', function(request, callback) {
-    var url = request.url.substr(7),
-        delegateProtocolScheme = CUSTOM_PROTOCOL + '://';
-
-    log('file protocol request for:', request.url);
-
-    // request to the page
-    if (url.lastIndexOf('/electron-html-to/', 0) === 0) {
-      url = url.replace('/electron-html-to/', '');
-      url = delegateProtocolScheme + url;
-      log('handling file protocol request to load the page. response file url:', url);
-      callback({ url: url });
-    } else if (request.url.lastIndexOf('file:///', 0) === 0 && !allowLocalFilesAccess) {
-      // potentially dangerous request
-      log('denying access to a file, url:', request.url);
-      // Permission to access a resource, other than the network, was denied.
-      // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
-      callback(-10);
-    } else if (request.url.lastIndexOf('file://', 0) === 0 && request.url.lastIndexOf('file:///', 0) !== 0) {
-      // support cdn like format -> //cdn.jquery...
-      url = 'http://' + url;
-      log('handling cdn format request, response url:', url);
-      callback({ url: url });
-    } else {
-      url = delegateProtocolScheme + url;
-      log('response file url:', url);
-      callback({ url: url });
-    }
-  }, function(interceptProtocolErr) {
-    protocolsCompleted++;
-
-    if (interceptProtocolErr) {
-      log('electron fails to register file protocol');
-      return resolveRegistration(interceptProtocolErr);
-    }
-
-    log('interception for file protocol register successfully');
-
-    if (protocolsCompleted === 2) {
-      resolveRegistration(null);
-    }
-  });
+    request({
+      url: requestedUrl,
+      method: 'GET',
+      encoding: null // if this value is null, request will return the body as a Buffer
+    }, function(err, response, body) {
+      if (!err && response.statusCode === 200) {
+        done({ data: body, mimeType: mimeType });
+      } else {
+        done(-2);
+      }
+    });
+  }
 };
