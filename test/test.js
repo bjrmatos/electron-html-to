@@ -85,17 +85,11 @@ describe('electron html to pdf', () => {
       });
     });
 
-    // it('should create a pdf file with header', function(done) {
-    //   done(new Error('Not implemented'));
-    // });
+    it('should create a pdf file with header');
 
-    // it('should create a pdf file with footer', function(done) {
-    //   done(new Error('Not implemented'));
-    // });
+    it('should create a pdf file with footer');
 
-    // it('should create a pdf file with header and footer', function(done) {
-    //   done(new Error('Not implemented'));
-    // });
+    it('should create a pdf file with header and footer');
 
     it('should create a pdf file ignoring ssl errors', function(done) {
       conversion({
