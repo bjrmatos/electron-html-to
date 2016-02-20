@@ -20,7 +20,7 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
     // request to the page
     if (parsedUrl.query && parsedUrl.query['ELECTRON-HTML-TO-LOAD-PAGE'] != null) {
       log('request to load the page:', url);
-      resolveFileRequest(url, callback);
+      resolveFileRequest(requestObj.url, callback);
     } else if (requestObj.url.lastIndexOf('file:///', 0) === 0 && !allowLocalFilesAccess) {
       // potentially dangerous request
       log('denying access to a file, url:', requestObj.url);
@@ -34,7 +34,7 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
       resolveCDNLikeRequest(url, callback);
     } else {
       log('request to load a file:', url);
-      resolveFileRequest(url, callback);
+      resolveFileRequest(requestObj.url, callback);
     }
   }, function(interceptProtocolErr) {
     if (interceptProtocolErr) {
@@ -49,8 +49,12 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
 
   function resolveFileRequest(requestedUrl, done) {
     var url = requestedUrl,
+        parsedUrl,
         mimeType,
         fileBuf;
+
+    parsedUrl = urlModule.parse(url);
+    url = parsedUrl.pathname;
 
     if (isURLEncoded(url)) {
       url = decodeURIComponent(url);
@@ -60,7 +64,6 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
       url = url.slice(1);
     }
 
-    url = urlModule.parse(url).pathname;
     mimeType = mime.lookup(path.extname(url)) || 'text/plain';
 
     log('resolving file protocol request. response file url:', url, 'mime type:', mimeType);

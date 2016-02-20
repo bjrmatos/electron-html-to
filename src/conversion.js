@@ -1,5 +1,6 @@
 
 import path from 'path';
+import url from 'url';
 import debug from 'debug';
 import uuid from 'uuid';
 import assign from 'object-assign';
@@ -103,7 +104,14 @@ function createConversion(options) {
       }
 
       // prefix the request in order to recognize later in electron protocol handler
-      localOpts.url = localOpts.url || 'file://' + localOpts.htmlFile + '?ELECTRON-HTML-TO-LOAD-PAGE';
+      localOpts.url = localOpts.url || url.format({
+        protocol: 'file',
+        pathname: localOpts.htmlFile,
+        query: {
+          'ELECTRON-HTML-TO-LOAD-PAGE': true
+        }
+      });
+
       localOpts.chromeCommandLineSwitches = options.chromeCommandLineSwitches;
       localOpts.extraHeaders = localOpts.extraHeaders || {};
 
