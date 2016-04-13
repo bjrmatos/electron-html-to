@@ -39,7 +39,7 @@
     "object-assign": "4.0.1",
     "request": "2.69.0",
     "sliced": "1.0.1",
-    "uuid": "2.0.1",
+    "uuid": "2.0.2",
     "which": "1.2.0"
   },
   "devDependencies": {
