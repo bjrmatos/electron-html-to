@@ -1,11 +1,13 @@
-# electron-html-to
-[![NPM Version](http://img.shields.io/npm/v/electron-html-to.svg?style=flat-square)](https://npmjs.com/package/electron-html-to)
-[![License](http://img.shields.io/npm/l/electron-html-to.svg?style=flat-square)](http://opensource.org/licenses/MIT)
-[![Build Status](https://travis-ci.org/bjrmatos/electron-html-to.png?branch=master)](https://travis-ci.org/bjrmatos/electron-html-to)
+electron-html-to
+================
+
+[![NPM Version](http://img.shields.io/npm/v/electron-html-to.svg?style=flat-square)](https://npmjs.com/package/electron-html-to)[![License](http://img.shields.io/npm/l/electron-html-to.svg?style=flat-square)](http://opensource.org/licenses/MIT)[![Build Status](https://travis-ci.org/bjrmatos/electron-html-to.png?branch=master)](https://travis-ci.org/bjrmatos/electron-html-to)
 
 > **Highly scalable html conversion in scale**
 
 This module let you convert a web page (html, css, js) in any format you want (via a converter function) using [electron](http://electron.atom.io/).
+
+*Works in electron@>=0.35.x <1.0.0*
 
 ```js
 var fs = require('fs'),
@@ -26,15 +28,18 @@ conversion({ html: '<h1>Hello World</h1>' }, function(err, result) {
 });
 ```
 
-## Built-in converters
+Built-in converters
+-------------------
 
-- `convertFactory.converters.PDF` (html to pdf) -> when the conversion ends the `result` param will have `numberOfPages` (Number) and `stream` (Stream) properties.
+-	`convertFactory.converters.PDF` (html to pdf) -> when the conversion ends the `result` param will have `numberOfPages` (Number) and `stream` (Stream) properties.
 
-## Custom converters
+Custom converters
+-----------------
 
 Converters are functions that run in the electron process, see the [pdf conversion implementation](https://github.com/bjrmatos/electron-html-to/blob/master/src/converters/pdf.js) for an example.
 
-## Global options
+Global options
+--------------
 
 ```js
 var conversion = require('electron-html-to')({
@@ -54,18 +59,19 @@ var conversion = require('electron-html-to')({
   /* set to true to allow request using the file protocol (file:///). defaults to false */
   allowLocalFilesAccess: false,
   /* optional chrome command line switches, see http://electron.atom.io/docs/v0.35.0/api/chrome-command-line-switches/ for details. defaults to { 'ignore-certificate-errors': null } */
-  chromeCommandLineSwitches: { 
-    'disable-http-cache': null, 
-    'log-net-log': '/path/to/save' 
+  chromeCommandLineSwitches: {
+    'disable-http-cache': null,
+    'log-net-log': '/path/to/save'
   },
-  /* use rather dedicated process for every conversion, 
-    dedicated-process strategy is quite slower but can solve some bugs 
-    with corporate proxy. for a description of `electron-server` and `electron-ipc` strategy see [electron-workers docs](https://github.com/bjrmatos/electron-workers/#modes). defaults to electron-ipc strategy */ 
+  /* use rather dedicated process for every conversion,
+    dedicated-process strategy is quite slower but can solve some bugs
+    with corporate proxy. for a description of `electron-server` and `electron-ipc` strategy see [electron-workers docs](https://github.com/bjrmatos/electron-workers/#modes). defaults to electron-ipc strategy */
   strategy: 'electron-ipc | electron-server | dedicated-process'
 });
 ```
 
-## Local options
+Local options
+-------------
 
 ```js
 conversion({
@@ -77,11 +83,11 @@ conversion({
   userAgent: 'CUSTOM_USER_AGENT', // set a custom user agent to use in electron's browser window
   /* custom extra headers to load the html or url */
   extraHeaders: {
-    'X-Foo': 'foo', 
+    'X-Foo': 'foo',
     'X-Bar': 'bar'
   },
   converterPath: '/path/to/a/converter.js', // absolute path to the converter function to use in the local conversion, if no specified the global converterPath option will be used
-  
+
   // options for electron's browser window, see http://electron.atom.io/docs/v0.35.0/api/browser-window/ for details for each option.
   // allowed browser-window options
   browserWindow: {
@@ -89,7 +95,7 @@ conversion({
     height: 600, // defaults to 600
     x: 0,
     y: 0,
-    useContentSize: false, 
+    useContentSize: false,
     webPreferences: {
       nodeIntegration: false, // defaults to false
       partition: '',
@@ -123,18 +129,24 @@ conversion({
 }, cb);
 ```
 
-## Kill workers
+Kill workers
+------------
+
 ```js
 // kill all electron workers when using electron-server strategy
 conversion.kill();
 ```
 
-## Programmatic conversion
+Programmatic conversion
+-----------------------
+
 If you need to programmatic trigger the conversion process (because you need to calculate some values or do something async in your page before convert it) you can enable the `waitForJS` local option, when `waitForJS` is set to true the conversion will wait until you set a variable to true in your page, by default the name of the variable is `ELECTRON_HTML_TO_READY` but you can customize it via `waitForJSVarName` option.
 
-**Example:**
+Example
+-------
 
 local options:
+
 ```js
 conversion({
   html: '<custom html here>',
@@ -143,6 +155,7 @@ conversion({
 ```
 
 custom html:
+
 ```html
 <h1></h1>
 <script>
@@ -153,27 +166,33 @@ custom html:
 </script>
 ```
 
-## Debugging
+Debugging
+---------
 
 To get more information about what's happening inside the conversion run your app with the `DEBUG` flag. `DEBUG=electron-html-to,electron-html-to:* node app.js` (on Windows use `set DEBUG=electron-html-to,electron-html-to:* & node app.js`).
 
 This will print out some additional information about what's going on.
 
-## Requeriments
+Requeriments
+------------
 
-- Install [electron](http://electron.atom.io/) > 0.35.x, the easy way to install electron in your app is `npm install electron-prebuilt --save`
+-	Install [electron](http://electron.atom.io/) > 0.35.x, the easy way to install electron in your app is `npm install electron-prebuilt --save`
 
-## Troubleshooting
+Troubleshooting
+---------------
 
 If you are using node with [nvm](https://github.com/creationix/nvm) and you have installed electron with `npm install -g electron-prebuilt` you probably will see an error or log with `env: node: No such file or directory`, this is because the electron executable installed by `electron-prebuilt` is a node CLI spawning the real electron executable internally, since nvm don't install/symlink node to `/usr/bin/env/node` when the electron executable installed by `electron-prebuilt` tries to run, it will fail because `node` won't be found in that context..
 
-*Solution:* 
+Solution
+--------
 
-1.- Install `electron-prebuilt` as a dependency in your app, this is the option **recommended** because you probably want to ensure your app always run with the exact version you tested it, and probably you dotn't want to install electron globally in your system.
+1.- Install `electron-prebuilt` as a dependency in your app, this is the option **recommended** because you probably want to ensure your app always run with the exact version you tested it, and probably you don't want to install electron globally in your system.
 
 2.- You can make a symlink to `/usr/bin/env/node` but this is **not recommended** by nvm authors, because you will loose all the power that nvm brings.
 
 3.- Put the path to the **real electron executable** in your `$PATH`.
 
-## License
+License
+-------
+
 See [license](https://github.com/bjrmatos/electron-html-to/blob/master/LICENSE)
