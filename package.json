@@ -9,7 +9,7 @@
     "postbuild": "node postbuild.js",
     "lint": "eslint src test",
     "test": "mocha test/test.js --timeout 8000",
-    "prepublish": "npm-run-all lint clean build"
+    "prepublish": "in-publish && npm-run-all lint clean build || not-in-publish"
   },
   "author": "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
   "license": "MIT",
@@ -47,6 +47,7 @@
     "cp": "0.2.0",
     "eslint": "1.9.0",
     "eslint-config-airbnb": "1.0.0",
+    "in-publish": "2.0.0",
     "mocha": "2.3.3",
     "npm-run-all": "1.2.13",
     "rimraf": "2.4.3",
