@@ -40,7 +40,7 @@
     "request": "2.69.0",
     "sliced": "1.0.1",
     "uuid": "2.0.1",
-    "which": "1.2.0"
+    "which": "1.2.4"
   },
   "devDependencies": {
     "babel": "5.8.29",
