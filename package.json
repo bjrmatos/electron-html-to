@@ -6,7 +6,6 @@
   "scripts": {
     "clean": "rimraf lib",
     "build": "babel src --out-dir lib",
-    "postbuild": "node postbuild.js",
     "lint": "eslint src test",
     "test": "mocha test/test.js --timeout 8000",
     "prepublish": "in-publish && npm-run-all lint clean build || not-in-publish"
@@ -37,6 +36,7 @@
     "minstache": "1.2.0",
     "mkdirp": "0.5.1",
     "object-assign": "4.1.0",
+    "pdfjs-dist": "1.5.285",
     "request": "2.72.0",
     "sliced": "1.0.1",
     "uuid": "2.0.2",
@@ -44,7 +44,6 @@
   },
   "devDependencies": {
     "babel": "5.8.29",
-    "cp": "0.2.0",
     "electron-prebuilt": "1.2.1",
     "eslint": "2.11.1",
     "eslint-config-airbnb-base": "3.0.1",
