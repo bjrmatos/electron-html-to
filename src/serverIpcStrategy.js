@@ -6,8 +6,8 @@ import electronWorkers from 'electron-workers';
 import ensureStart from './ensureStartWorker';
 import { name as pkgName } from '../package.json';
 
-const debugServerStrategy = debug(pkgName + ':electron-server-strategy'),
-      debugIpcStrategy = debug(pkgName + ':electron-ipc-strategy');
+const debugServerStrategy = debug(`${pkgName}:electron-server-strategy`),
+      debugIpcStrategy = debug(`${pkgName}:electron-ipc-strategy`);
 
 export default function(mode, options) {
   let debugMode = false,
@@ -86,6 +86,7 @@ export default function(mode, options) {
 
           // if the error is a timeout from electron-workers
           if (executeErr.workerTimeout) {
+            // eslint-disable-next-line no-param-reassign
             executeErr.electronTimeout = true;
           }
 

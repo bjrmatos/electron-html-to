@@ -1,12 +1,11 @@
-/* eslint no-var: [0] */
 
-var path = require('path'),
-    fs = require('fs'),
-    assign = require('object-assign'),
-    pdfParser = require('../pdfParser');
+const path = require('path'),
+      fs = require('fs'),
+      assign = require('object-assign'),
+      pdfParser = require('../pdfParser');
 
 module.exports = function(log, settings, browserWindow, done) {
-  var pdfDefaults = {
+  let pdfDefaults = {
     marginsType: 0,
     pageSize: 'A4',
     printBackground: false,
@@ -14,14 +13,14 @@ module.exports = function(log, settings, browserWindow, done) {
   };
 
   // TODO: support headerHeight, footerHeight when electron support rendering PDF's header/footer
-  var pdfSettings = settings.pdf,
+  let pdfSettings = settings.pdf,
       pdfOptions = assign({}, pdfDefaults, pdfSettings, { printSelectionOnly: false });
 
   log('before printing..');
   log('pdf options:', pdfOptions);
 
-  browserWindow.webContents.printToPDF(pdfOptions, function(err, pdfBuf) {
-    var dist = path.join(settings.output.tmpDir, settings.output.id + '.pdf');
+  browserWindow.webContents.printToPDF(pdfOptions, (err, pdfBuf) => {
+    let dist = path.join(settings.output.tmpDir, `${settings.output.id}.pdf`);
 
     if (err) {
       return done(err);
@@ -33,7 +32,7 @@ module.exports = function(log, settings, browserWindow, done) {
     log('after printing..');
     log('parsing pdf..');
 
-    pdfParser(pdfBuf, function(pdfParseErr, pdfDoc) {
+    pdfParser(pdfBuf, (pdfParseErr, pdfDoc) => {
       log('pdf parsing complete..');
 
       if (pdfParseErr) {
@@ -55,7 +54,7 @@ module.exports = function(log, settings, browserWindow, done) {
           done(saveErr);
         }
       } else {
-        fs.writeFile(dist, pdfBuf, function(saveErr) {
+        fs.writeFile(dist, pdfBuf, (saveErr) => {
           if (saveErr) {
             return done(saveErr);
           }

@@ -1,19 +1,20 @@
-/* eslint no-var: [0] */
 
-var util = require('util'),
-    fs = require('fs'),
-    electron = require('electron'),
-    sliced = require('sliced'),
-    getBrowserWindowOpts = require('./getBrowserWindowOpts'),
-    registerProtocol = require('./registerProtocol'),
-    conversionScript = require('./conversionScript'),
-    evaluate = require('./evaluateJS'),
-    parentChannel = require('../ipc')(process),
-    app = electron.app,
-    renderer = electron.ipcMain,
-    BrowserWindow = electron.BrowserWindow;
+const util = require('util'),
+      fs = require('fs'),
+      // disabling import rule because `electron` is a built-in module
+      // eslint-disable-next-line import/no-unresolved
+      electron = require('electron'),
+      sliced = require('sliced'),
+      getBrowserWindowOpts = require('./getBrowserWindowOpts'),
+      registerProtocol = require('./registerProtocol'),
+      conversionScript = require('./conversionScript'),
+      evaluate = require('./evaluateJS'),
+      parentChannel = require('../ipc')(process),
+      app = electron.app,
+      renderer = electron.ipcMain,
+      BrowserWindow = electron.BrowserWindow;
 
-var mainWindow = null,
+let mainWindow = null,
     mainWindowId,
     settingsFile,
     settingsData,
@@ -28,37 +29,38 @@ WORKER_ID = process.env.ELECTRON_WORKER_ID;
 DEBUG_MODE = Boolean(process.env.ELECTRON_HTML_TO_DEBUGGING);
 
 log = function() {
-  var newArgs = sliced(arguments);
+  // eslint-disable-next-line prefer-rest-params
+  let newArgs = sliced(arguments);
 
-  newArgs.unshift('[Worker ' + WORKER_ID + ']');
+  newArgs.unshift(`[Worker ${WORKER_ID}]`);
 
   parentChannel.emit.apply(parentChannel, ['log'].concat(newArgs));
 };
 
 global.windowsData = {};
 
-log('reading settings file from ' + settingsFile);
+log(`reading settings file from ${settingsFile}`);
 settingsData = fs.readFileSync(settingsFile).toString();
 
 settingsData = JSON.parse(settingsData);
 converterPath = settingsData.converterPath;
 
-log('requiring converter module from ' + converterPath);
+log(`requiring converter module from ${converterPath}`);
 converter = require(converterPath);
 
-Object.keys(settingsData.chromeCommandLineSwitches).forEach(function(switchName) {
-  var switchValue = settingsData.chromeCommandLineSwitches[switchName];
+Object.keys(settingsData.chromeCommandLineSwitches).forEach((switchName) => {
+  let switchValue = settingsData.chromeCommandLineSwitches[switchName];
 
   if (switchValue != null) {
-    log('establishing chrome command line switch [' + switchName + ':' + switchValue + ']');
+    log(`establishing chrome command line switch [${switchName}:${switchValue}]`);
     app.commandLine.appendSwitch(switchName, switchValue);
   } else {
-    log('establishing chrome command line switch [' + switchName + ']');
+    log(`establishing chrome command line switch [${switchName}]`);
     app.commandLine.appendSwitch(switchName);
   }
 });
 
-app.on('window-all-closed', function() {
+app.on('window-all-closed', () => {
   log('exiting electron process..');
   app.quit();
 });
@@ -69,17 +71,17 @@ if (app.dock && typeof app.dock.hide === 'function') {
   }
 }
 
-app.on('ready', function() {
-  var protocol = electron.protocol;
+app.on('ready', () => {
+  let protocol = electron.protocol;
 
-  var evaluateInWindow,
+  let evaluateInWindow,
       dataForWindow = {},
       browserWindowOpts;
 
   log('electron process ready..');
 
-  registerProtocol(protocol, settingsData.allowLocalFilesAccess, log, function(registrationErr) {
-    var extraHeaders = '';
+  registerProtocol(protocol, settingsData.allowLocalFilesAccess, log, (registrationErr) => {
+    let extraHeaders = '';
 
     if (registrationErr) {
       return respond(registrationErr);
@@ -92,19 +94,20 @@ app.on('ready', function() {
       dataForWindow.waitForJSVarName = settingsData.waitForJSVarName;
     }
 
-    renderer.on('page-error', function(ev, windowId, errMsg, errStack) {
+    renderer.on('page-error', (ev, windowId, errMsg, errStack) => {
       parentChannel.emit('page-error', windowId, errMsg, errStack);
     });
 
-    renderer.on('page-log', function(ev, args) {
+    renderer.on('page-log', (ev, args) => {
       parentChannel.emit.apply(parentChannel, ['page-log'].concat(args));
     });
 
     renderer.on('log', function() {
-      var newArgs = sliced(arguments),
+      // eslint-disable-next-line prefer-rest-params
+      let newArgs = sliced(arguments),
           windowId = newArgs.splice(0, 2)[1];
 
-      newArgs.unshift('[Browser window - ' + windowId + ' log ]:');
+      newArgs.unshift(`[Browser window - ${windowId} log ]:`);
 
       log.apply(log, newArgs);
     });
@@ -130,7 +133,7 @@ app.on('ready', function() {
 
     mainWindow.webContents.setAudioMuted(true);
 
-    mainWindow.on('closed', function() {
+    mainWindow.on('closed', () => {
       log('browser-window closed..');
 
       delete global.windowsData[mainWindowId];
@@ -140,13 +143,13 @@ app.on('ready', function() {
     conversionScript(settingsData, mainWindow, evaluateInWindow, log, converter, respond);
 
     if (settingsData.userAgent) {
-      log('setting up custom user agent: ' + settingsData.userAgent);
+      log(`setting up custom user agent: ${settingsData.userAgent}`);
       mainWindow.webContents.setUserAgent(settingsData.userAgent);
     }
 
     if (typeof settingsData.extraHeaders === 'object') {
-      Object.keys(settingsData.extraHeaders).forEach(function(key) {
-        extraHeaders += key + ': ' + settingsData.extraHeaders[key] + '\n';
+      Object.keys(settingsData.extraHeaders).forEach((key) => {
+        extraHeaders += `${key}: ${settingsData.extraHeaders[key]}\n`;
       });
     }
 
@@ -154,7 +157,7 @@ app.on('ready', function() {
 
     if (extraHeaders) {
       mainWindow.loadURL(settingsData.url, {
-        extraHeaders: extraHeaders
+        extraHeaders
       });
     } else {
       mainWindow.loadURL(settingsData.url);
@@ -166,7 +169,7 @@ app.on('ready', function() {
 });
 
 function respond(err, data) {
-  var errMsg = null;
+  let errMsg = null;
 
   log('finishing work in browser-window..');
 

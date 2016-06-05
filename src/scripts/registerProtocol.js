@@ -1,18 +1,17 @@
-/* eslint no-var: [0] */
 
-var path = require('path'),
-    urlModule = require('url'),
-    fs = require('fs'),
-    request = require('request'),
-    mime = require('mime-types');
+const path = require('path'),
+      urlModule = require('url'),
+      fs = require('fs'),
+      request = require('request'),
+      mime = require('mime-types');
 
 function isURLEncoded(url) {
   return decodeURIComponent(url) !== url;
 }
 
 module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
-  protocol.interceptBufferProtocol('file', function(requestObj, callback) {
-    var url = requestObj.url.substr(7),
+  protocol.interceptBufferProtocol('file', (requestObj, callback) => {
+    let url = requestObj.url.substr(7),
         parsedUrl = urlModule.parse(requestObj.url, true);
 
     log('file protocol request for:', requestObj.url);
@@ -29,14 +28,14 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
       callback(-10);
     } else if (requestObj.url.lastIndexOf('file://', 0) === 0 && requestObj.url.lastIndexOf('file:///', 0) !== 0) {
       // support cdn like format -> //cdn.jquery...
-      url = 'http://' + url;
+      url = `http://${url}`;
       log('handling cdn format request, url:', url);
       resolveCDNLikeRequest(url, callback);
     } else {
       log('request to load a file:', url);
       resolveFileRequest(requestObj.url, callback);
     }
-  }, function(interceptProtocolErr) {
+  }, (interceptProtocolErr) => {
     if (interceptProtocolErr) {
       log('electron fails to register file protocol');
       return ready(interceptProtocolErr);
@@ -48,7 +47,7 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
   });
 
   function resolveFileRequest(requestedUrl, done) {
-    var url = requestedUrl,
+    let url = requestedUrl,
         parsedUrl,
         mimeType,
         fileBuf;
@@ -74,14 +73,14 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
       // using any async file API, so the only/best option is to read the file in a synchronous way
       try {
         fileBuf = fs.readFileSync(url);
-        done({ data: fileBuf, mimeType: mimeType });
+        done({ data: fileBuf, mimeType });
       } catch (err) {
         // A generic failure occurred.
         // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
         done(-2);
       }
     } else {
-      fs.readFile(url, function(err, buf) {
+      fs.readFile(url, (err, buf) => {
         if (err) {
           // A generic failure occurred.
           // see https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h
@@ -89,13 +88,13 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
         }
 
         fileBuf = buf;
-        done({ data: fileBuf, mimeType: mimeType });
+        done({ data: fileBuf, mimeType });
       });
     }
   }
 
   function resolveCDNLikeRequest(requestedUrl, done) {
-    var url = urlModule.parse(requestedUrl).pathname,
+    let url = urlModule.parse(requestedUrl).pathname,
         mimeType = mime.lookup(path.extname(url)) || 'text/plain';
 
     log('resolving cnd like request:', requestedUrl, 'mime type:', mimeType);
@@ -104,9 +103,9 @@ module.exports = function(protocol, allowLocalFilesAccess, log, ready) {
       url: requestedUrl,
       method: 'GET',
       encoding: null // if this value is null, request will return the body as a Buffer
-    }, function(err, response, body) {
+    }, (err, response, body) => {
       if (!err && response.statusCode === 200) {
-        done({ data: body, mimeType: mimeType });
+        done({ data: body, mimeType });
       } else {
         done(-2);
       }

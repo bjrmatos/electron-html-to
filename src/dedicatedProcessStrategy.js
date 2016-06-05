@@ -9,9 +9,9 @@ import ipc from './ipc';
 import saveFile from './saveFile';
 import { name as pkgName } from '../package.json';
 
-const debugStrategy = debug(pkgName + ':dedicated-process-strategy'),
-      debugElectronLog = debug(pkgName + ':electron-log'),
-      debugPage = debug(pkgName + ':page');
+const debugStrategy = debug(`${pkgName}:dedicated-process-strategy`),
+      debugElectronLog = debug(`${pkgName}:electron-log`),
+      debugPage = debug(`${pkgName}:page`);
 
 let ELECTRON_PATH;
 
@@ -25,6 +25,7 @@ function getElectronPath() {
 
   try {
     // first try to find the electron executable if it is installed from electron-prebuilt..
+    // eslint-disable-next-line global-require
     electron = require('electron-prebuilt');
     debugStrategy('electron executable path returned from electron-prebuilt module: %s', electron);
   } catch (err) {
@@ -50,11 +51,12 @@ export default function(options, requestOptions, converterPath, id, cb) {
     allowLocalFilesAccess
   } = options;
 
-  const settingsFilePath = path.resolve(path.join(tmpDir, id + 'settings.html'));
+  const settingsFilePath = path.resolve(path.join(tmpDir, `${id}settings.html`));
+  const settingsContent = JSON.stringify({ ...requestOptions, converterPath, allowLocalFilesAccess });
 
   debugStrategy('saving settings in temporal file..');
 
-  saveFile(tmpDir, settingsFilePath, JSON.stringify({ ...requestOptions, converterPath, allowLocalFilesAccess }), (saveFileErr) => {
+  saveFile(tmpDir, settingsFilePath, settingsContent, (saveFileErr) => {
     const childArgs = [];
 
     let debugMode = false,
@@ -132,14 +134,16 @@ export default function(options, requestOptions, converterPath, id, cb) {
     });
 
     childIpc.on('page-log', function() {
+      // eslint-disable-next-line prefer-rest-params
       let newArgs = sliced(arguments),
           windowId = newArgs.splice(0, 1);
 
-      newArgs.unshift('console log from browser window [' + windowId + ']:');
+      newArgs.unshift(`console log from browser window [${windowId}]:`);
       debugPage.apply(debugPage, newArgs);
     });
 
     childIpc.on('log', function() {
+      // eslint-disable-next-line prefer-rest-params
       debugElectronLog.apply(debugElectronLog, sliced(arguments));
     });
 

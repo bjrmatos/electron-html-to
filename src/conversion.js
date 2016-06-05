@@ -9,7 +9,7 @@ import saveFile from './saveFile';
 import serverIpcStrategy from './serverIpcStrategy';
 import dedicatedProcessStrategy from './dedicatedProcessStrategy';
 
-const debugConversion = debug(pkgName + ':conversion');
+const debugConversion = debug(`${pkgName}:conversion`);
 
 function writeHtmlFile(opt, tmpPath, type, id, cb) {
   let htmlPath;
@@ -18,8 +18,9 @@ function writeHtmlFile(opt, tmpPath, type, id, cb) {
     return cb();
   }
 
-  htmlPath = path.resolve(path.join(tmpPath, id + type + '.html'));
-  opt[type + 'File'] = path.resolve(htmlPath);
+  htmlPath = path.resolve(path.join(tmpPath, `${id + type}.html`));
+  // eslint-disable-next-line no-param-reassign
+  opt[`${type}File`] = path.resolve(htmlPath);
 
   debugConversion('creating temporal html file [type: %s] in %s..', type, htmlPath);
   saveFile(tmpPath, htmlPath, opt[type], cb);
@@ -91,7 +92,8 @@ function createConversion(options) {
       converterPath = options.converterPath;
     }
 
-    if (localOpts.waitForJS && localOpts.browserWindow.webPreferences && localOpts.browserWindow.webPreferences.javascript === false) {
+    if (localOpts.waitForJS && localOpts.browserWindow.webPreferences &&
+      localOpts.browserWindow.webPreferences.javascript === false) {
       throw new Error('can\'t use waitForJS option if browserWindow["web-preferences"].javascript is not activated');
     }
 
@@ -117,7 +119,7 @@ function createConversion(options) {
 
       localOpts.output = {
         tmpDir: path.resolve(path.join(options.tmpDir)),
-        id: id
+        id
       };
 
       delete localOpts.html;
@@ -132,7 +134,7 @@ function createConversion(options) {
         return dedicatedProcessStrategy(options, localOpts, converterPath, id, cb);
       }
 
-      cb(new Error('Unsupported strategy ' + options.strategy));
+      cb(new Error(`Unsupported strategy ${options.strategy}`));
     });
   };
 

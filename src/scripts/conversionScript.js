@@ -1,17 +1,18 @@
-/* eslint no-var: [0] */
 
-var renderer = require('electron').ipcMain,
-    assign = require('object-assign');
+// disabling import rule because `electron` is a built-in module
+// eslint-disable-next-line import/no-unresolved
+const renderer = require('electron').ipcMain,
+      assign = require('object-assign');
 
 module.exports = function(settings, browserWindow, evaluate, log, converter, respond) {
-  var pageJSisDone = settings.waitForJS ? false : true;
+  let pageJSisDone = !Boolean(settings.waitForJS);
 
-  renderer.once(browserWindow.id + ':waitForJS', function() {
+  renderer.once(`${browserWindow.id}:waitForJS`, () => {
     log('waitForJS signal received..');
     pageJSisDone = true;
   });
 
-  browserWindow.webContents.on('did-finish-load', function() {
+  browserWindow.webContents.on('did-finish-load', () => {
     log('browser window loaded..');
 
     if (settings.browserWindow.webPreferences.javascript === false) {
@@ -19,15 +20,15 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
 
       next();
     } else {
-      evaluate(function() {
-        var sElectronHeader = '#electronHeader',
-            sElectronFooter = '#electronFooter';
+      evaluate(() => {
+        const sElectronHeader = '#electronHeader',
+              sElectronFooter = '#electronFooter';
 
         return {
           electronHeader: document.querySelector(sElectronHeader) ? document.querySelector(sElectronHeader).innerHTML : null,
           electronFooter: document.querySelector(sElectronFooter) ? document.querySelector(sElectronFooter).innerHTML : null
         };
-      }, function(err, extraContent) {
+      }, (err, extraContent) => {
         if (err) {
           return respond(err);
         }
@@ -41,14 +42,14 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
       // TODO: ask support for header/footer pdf and numberOfPages in electron
       log('waiting for browser window resolution..');
 
-      setTimeout(function() {
+      setTimeout(() => {
         resolvePage();
       }, settings.delay || 0);
     }
 
     function resolvePage() {
       if (settings.waitForJS && !pageJSisDone) {
-        setTimeout(function() {
+        setTimeout(() => {
           resolvePage();
         }, 100);
 
@@ -57,7 +58,7 @@ module.exports = function(settings, browserWindow, evaluate, log, converter, res
 
       log('calling converter function..');
 
-      converter(log, assign({}, settings), browserWindow, function(converterErr, data) {
+      converter(log, assign({}, settings), browserWindow, (converterErr, data) => {
         log('converter function ended..');
         respond(converterErr, data);
       });

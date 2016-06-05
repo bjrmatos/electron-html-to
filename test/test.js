@@ -10,10 +10,10 @@ function createConversion(strategy) {
   return convertFactory({
     converterPath: convertFactory.converters.PDF,
     timeout: 10000,
-    tmpDir: tmpDir,
+    tmpDir,
     portLeftBoundary: 10000,
     portRightBoundary: 15000,
-    strategy: strategy
+    strategy
   });
 }
 
@@ -32,7 +32,7 @@ function rmDir(dirPath) {
 
   if (files.length > 0) {
     for (let ix = 0; ix < files.length; ix++) {
-      let filePath = dirPath + '/' + files[ix];
+      let filePath = `${dirPath}/${files[ix]}`;
 
       if (fs.statSync(filePath).isFile()) {
         fs.unlinkSync(filePath);
@@ -41,7 +41,8 @@ function rmDir(dirPath) {
   }
 }
 
-/* eslint padded-blocks: [0] */
+/* eslint-disable padded-blocks */
+/* eslint-disable prefer-arrow-callback */
 describe('electron html to pdf', () => {
   describe('dedicated-process', () => {
     common('dedicated-process');

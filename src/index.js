@@ -17,7 +17,7 @@ function conversionFactory(userOptions = {}) {
     chromeCommandLineSwitches: {},
     allowLocalFilesAccess: false,
     // namespace for tmp dir
-    tmpDir: path.join(os.tmpDir(), pkgName + '-tmp-data'),
+    tmpDir: path.join(os.tmpDir(), `${pkgName}-tmp-data`),
     strategy: 'electron-ipc'
   };
 
