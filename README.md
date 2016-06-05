@@ -7,7 +7,7 @@ electron-html-to
 
 This module let you convert a web page (html, css, js) in any format you want (via a converter function) using [electron](http://electron.atom.io/).
 
-*Works in electron@>=0.35.x <1.0.0*
+*Works in electron@>=0.35.x including electron@1*
 
 ```js
 var fs = require('fs'),
