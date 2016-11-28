@@ -34,7 +34,7 @@ function rmDir(dirPath) {
     for (let ix = 0; ix < files.length; ix++) {
       let filePath = `${dirPath}/${files[ix]}`;
 
-      if (fs.lstatSync(filePath).isFile()) {
+      if (fs.statSync(filePath).isFile()) {
         fs.unlinkSync(filePath);
       }
     }
@@ -59,7 +59,7 @@ describe('electron html to pdf', () => {
   function common(strategy) {
     let conversion = createConversion(strategy);
 
-    afterEach(() => {
+    after(() => {
       rmDir(tmpDir);
     });
 
