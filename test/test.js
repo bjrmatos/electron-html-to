@@ -34,7 +34,7 @@ function rmDir(dirPath) {
     for (let ix = 0; ix < files.length; ix++) {
       let filePath = `${dirPath}/${files[ix]}`;
 
-      if (fs.statSync(filePath).isFile()) {
+      if (fs.lstatSync(filePath).isFile()) {
         fs.unlinkSync(filePath);
       }
     }
@@ -59,7 +59,7 @@ describe('electron html to pdf', () => {
   function common(strategy) {
     let conversion = createConversion(strategy);
 
-    after(() => {
+    afterEach(() => {
       rmDir(tmpDir);
     });
 
@@ -70,6 +70,7 @@ describe('electron html to pdf', () => {
         }
 
         res.numberOfPages.should.be.eql(2);
+        res.stream.close();
         done();
       });
     });
@@ -82,6 +83,7 @@ describe('electron html to pdf', () => {
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
+        res.stream.close();
         done();
       });
     });
@@ -102,6 +104,7 @@ describe('electron html to pdf', () => {
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
+        res.stream.close();
         done();
       });
     });
@@ -117,6 +120,7 @@ describe('electron html to pdf', () => {
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
+        res.stream.close();
         done();
       });
     });
@@ -132,6 +136,7 @@ describe('electron html to pdf', () => {
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
+        res.stream.close();
         done();
       });
     });
@@ -148,6 +153,7 @@ describe('electron html to pdf', () => {
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
+        res.stream.close();
         done();
       });
     });
@@ -180,15 +186,47 @@ describe('electron html to pdf', () => {
           }
         }
       }, function(err, res) {
-        if (!err) {
+        if (err) {
           return done(err);
         }
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
+        res.stream.close();
         done();
       });
     });
   }
 
+  describe('failing to start workers', () => {
+    it('should not accumulate error callbacks', (done) => {
+      let conversion = convertFactory({
+        converterPath: convertFactory.converters.PDF,
+        pathToElectron: 'invalid',
+        timeout: 10000,
+        tmpDir,
+        portLeftBoundary: 10000,
+        portRightBoundary: 15000,
+        strategy: 'electron-ipc'
+      });
+
+      let cbCounter = 0;
+
+      conversion({
+        html: 'test'
+      }, function() {
+        cbCounter++;
+
+        conversion({
+          html: 'test'
+        }, function() {
+          cbCounter++;
+          setTimeout(function() {
+            cbCounter.should.be.eql(2);
+            done();
+          }, 0);
+        });
+      });
+    });
+  });
 });

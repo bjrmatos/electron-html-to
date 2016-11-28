@@ -56,7 +56,9 @@ export default function ensureStart(debugStrategy, workers, instance, cb) {
     instance.starting = false;
 
     if (startErr) {
-      instance.startCb.forEach((callback) => callback(startErr));
+      let startCbs = instance.startCb.slice(0);
+      instance.startCb.splice(0, instance.startCb.length);
+      startCbs.forEach((callback) => callback(startErr));
       return;
     }
 
