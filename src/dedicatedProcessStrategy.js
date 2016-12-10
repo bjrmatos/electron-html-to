@@ -19,28 +19,55 @@ function getElectronPath() {
   let electron;
 
   if (ELECTRON_PATH) {
-    debugStrategy('electron executable path returned from memory: %s', ELECTRON_PATH);
+    debugStrategy('getting electron path from cache');
     return ELECTRON_PATH;
   }
 
-  try {
-    // first try to find the electron executable if it is installed from electron-prebuilt..
-    // eslint-disable-next-line global-require
-    electron = require('electron-prebuilt');
-    debugStrategy('electron executable path returned from electron-prebuilt module: %s', electron);
-  } catch (err) {
-    if (err.code === 'MODULE_NOT_FOUND') {
-      // ..if electron-prebuilt was not used try using which module
+  // first try to find the electron executable if it is installed from `electron`..
+  electron = getElectronPathFromPackage('electron');
+
+  if (electron == null) {
+    // second try to find the electron executable if it is installed from `electron-prebuilt`..
+    electron = getElectronPathFromPackage('electron-prebuilt');
+  }
+
+  if (electron == null) {
+    // last try to find the electron executable, trying using which module
+    debugStrategy('trying to get electron path from $PATH..');
+
+    try {
       electron = which.sync('electron');
-      debugStrategy('electron executable path returned from $PATH: %s', electron);
-    } else {
-      throw err;
+    } catch (whichErr) {
+      throw new Error(
+        'Couldn\'t find the path to the electron executable automatically, ' +
+        'try installing the `electron` or `electron-prebuilt` package, ' +
+        'or set the `pathToElectron` option to specify the path manually'
+      );
     }
   }
 
   ELECTRON_PATH = electron;
 
   return electron;
+}
+
+function getElectronPathFromPackage(moduleName) {
+  let electronPath;
+
+  try {
+    debugStrategy(`trying to get electron path from "${moduleName}" module..`);
+
+    // eslint-disable-next-line global-require
+    electronPath = require(moduleName);
+
+    return electronPath;
+  } catch (err) {
+    if (err.code === 'MODULE_NOT_FOUND') {
+      return electronPath;
+    }
+
+    throw err;
+  }
 }
 
 export default function(options, requestOptions, converterPath, id, cb) {
