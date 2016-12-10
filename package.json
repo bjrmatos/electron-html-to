@@ -29,29 +29,29 @@
   ],
   "dependencies": {
     "body": "5.1.0",
-    "debug": "2.2.0",
+    "debug": "2.3.3",
     "electron-workers": "1.9.0",
-    "lodash.pick": "4.2.1",
-    "mime-types": "2.1.11",
+    "lodash.pick": "4.4.0",
+    "mime-types": "2.1.13",
     "minstache": "1.2.0",
     "mkdirp": "0.5.1",
     "object-assign": "4.1.0",
-    "pdfjs-dist": "1.5.285",
-    "request": "2.72.0",
+    "pdfjs-dist": "1.6.377",
+    "request": "2.79.0",
     "sliced": "1.0.1",
-    "uuid": "2.0.2",
-    "which": "1.2.9"
+    "uuid": "3.0.1",
+    "which": "1.2.12"
   },
   "devDependencies": {
-    "babel": "5.8.29",
-    "electron-prebuilt": "1.2.1",
-    "eslint": "2.11.1",
-    "eslint-config-airbnb-base": "3.0.1",
-    "eslint-plugin-import": "1.8.1",
+    "babel": "6.5.2",
+    "electron-prebuilt": "1.4.12",
+    "eslint": "3.12.0",
+    "eslint-config-airbnb-base": "10.0.1",
+    "eslint-plugin-import": "2.2.0",
     "in-publish": "2.0.0",
-    "mocha": "2.5.3",
-    "npm-run-all": "2.1.1",
-    "rimraf": "2.5.2",
-    "should": "9.0.0"
+    "mocha": "3.2.0",
+    "npm-run-all": "3.1.2",
+    "rimraf": "2.5.4",
+    "should": "11.1.2"
   }
 }
