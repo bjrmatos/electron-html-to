@@ -176,7 +176,8 @@ This will print out some additional information about what's going on.
 Requeriments
 ------------
 
--	Install [electron](http://electron.atom.io/) > 0.35.x, the easy way to install electron in your app is `npm install electron-prebuilt --save`
+-	Install [electron](http://electron.atom.io/) >= 0.35.x including electron@1, the easy way to install
+electron in your app is `npm install electron --save` or `npm install electron-prebuilt --save`
 
 Troubleshooting
 ---------------
