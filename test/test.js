@@ -100,7 +100,7 @@ describe('electron html to pdf', () => {
           return done(err);
         }
 
-        should(res.numberOfPages).be.eql(1);
+        should(res.numberOfPages).be.eql(2);
         should(res.stream).have.property('readable');
         done();
       });
