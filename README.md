@@ -173,7 +173,7 @@ To get more information about what's happening inside the conversion run your ap
 
 This will print out some additional information about what's going on.
 
-Requeriments
+Requirements
 ------------
 
 -	Install [electron](http://electron.atom.io/) >= 0.35.x including electron@1, the easy way to install
