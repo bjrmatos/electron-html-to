@@ -18,13 +18,11 @@ const util = require('util'),
 let windows = [],
     log,
     PORT,
-    HOST,
     WORKER_ID,
     DEBUG_MODE,
     CHROME_COMMAND_LINE_SWITCHES,
     ALLOW_LOCAL_FILES_ACCESS;
 
-HOST = process.env.ELECTRON_WORKER_HOST;
 PORT = process.env.ELECTRON_WORKER_PORT;
 WORKER_ID = process.env.ELECTRON_WORKER_ID;
 DEBUG_MODE = Boolean(process.env.ELECTRON_HTML_TO_DEBUGGING);
@@ -126,7 +124,9 @@ app.on('ready', () => {
       app.quit();
     });
 
-    server.listen(PORT, HOST);
+    // we don't bind the server to any specific hostname to allow listening
+    // in any ip address in local server
+    server.listen(PORT);
   });
 });
 
