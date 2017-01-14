@@ -103,7 +103,9 @@ export default function(options, requestOptions, converterPath, id, cb) {
     childOpts = {
       env: {
         ELECTRON_WORKER_ID: id,
-        ELECTRON_HTML_TO_SETTINGS_FILE_PATH: settingsFilePath
+        ELECTRON_HTML_TO_SETTINGS_FILE_PATH: settingsFilePath,
+        // propagate the DISPLAY env var to make it work on LINUX
+        DISPLAY: process.env.DISPLAY
       },
       stdio: [null, null, null, 'ipc']
     };
