@@ -57,7 +57,11 @@ export default function ensureStart(debugStrategy, workers, instance, cb) {
 
     if (startErr) {
       let startCbs = instance.startCb.slice(0);
+
+      // clean up callback queue when workers fail to start, necessary to prevent
+      // duplication of callback invocation when trying to call `conversion` again after a failing start of workers
       instance.startCb.splice(0, instance.startCb.length);
+
       startCbs.forEach((callback) => callback(startErr));
       return;
     }
