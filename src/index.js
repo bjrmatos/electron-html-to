@@ -16,6 +16,8 @@ function conversionFactory(userOptions = {}) {
     numberOfWorkers: 2,
     chromeCommandLineSwitches: {},
     allowLocalFilesAccess: false,
+    // default size for console.log messages
+    maxLogEntrySize: 1000,
     // namespace for tmp dir
     tmpDir: path.join(os.tmpDir(), `${pkgName}-tmp-data`),
     strategy: 'electron-ipc'

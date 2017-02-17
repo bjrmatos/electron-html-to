@@ -21,13 +21,19 @@ let windows = [],
     WORKER_ID,
     DEBUG_MODE,
     CHROME_COMMAND_LINE_SWITCHES,
-    ALLOW_LOCAL_FILES_ACCESS;
+    ALLOW_LOCAL_FILES_ACCESS,
+    MAX_LOG_ENTRY_SIZE;
 
 PORT = process.env.ELECTRON_WORKER_PORT;
 WORKER_ID = process.env.ELECTRON_WORKER_ID;
 DEBUG_MODE = Boolean(process.env.ELECTRON_HTML_TO_DEBUGGING);
 CHROME_COMMAND_LINE_SWITCHES = JSON.parse(process.env.chromeCommandLineSwitches);
 ALLOW_LOCAL_FILES_ACCESS = process.env.allowLocalFilesAccess === 'true';
+MAX_LOG_ENTRY_SIZE = parseInt(process.env.maxLogEntrySize, 10);
+
+if (isNaN(MAX_LOG_ENTRY_SIZE)) {
+  MAX_LOG_ENTRY_SIZE = 1000;
+}
 
 log = function() {
   // eslint-disable-next-line prefer-rest-params
@@ -39,6 +45,7 @@ log = function() {
 };
 
 global.windowsData = {};
+global.windowsLogs = {};
 
 Object.keys(CHROME_COMMAND_LINE_SWITCHES).forEach((switchName) => {
   let switchValue = CHROME_COMMAND_LINE_SWITCHES[switchName];
@@ -83,7 +90,20 @@ app.on('ready', () => {
     });
 
     renderer.on('page-log', (ev, args) => {
-      parentChannel.emit.apply(parentChannel, ['page-log'].concat(args));
+      let windowId = args[0],
+          logLevel = args[1],
+          logArgs = args.slice(2),
+          // removing log level argument
+          newArgs = args.slice(0, 1).concat(logArgs);
+
+      // saving logs
+      global.windowsLogs[windowId].push({
+        level: logLevel,
+        message: trimMessage(logArgs),
+        timestamp: new Date().getTime()
+      });
+
+      parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
     });
 
     renderer.on('log', function() {
@@ -152,6 +172,14 @@ function createBrowserWindow(res, settingsData) {
       return res.end(errMsg);
     }
 
+    if (settingsData.collectLogs) {
+      // eslint-disable-next-line no-param-reassign
+      data.logs = global.windowsLogs[currentWindowId];
+    } else {
+      // eslint-disable-next-line no-param-reassign
+      data.logs = [];
+    }
+
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(data));
 
@@ -203,6 +231,7 @@ function createBrowserWindow(res, settingsData) {
 
   evaluateInWindow = evaluate(currentWindow);
   global.windowsData[currentWindowId] = dataForWindow;
+  global.windowsLogs[currentWindowId] = [];
 
   currentWindow.webContents.setAudioMuted(true);
 
@@ -210,6 +239,8 @@ function createBrowserWindow(res, settingsData) {
     log('browser-window closed..');
 
     delete global.windowsData[currentWindowId];
+    delete global.windowsLogs[currentWindowId];
+
     removeWindow(currentWindow);
     currentWindow = null;
   });
@@ -251,4 +282,14 @@ function removeWindow(browserWindow) {
       windows.splice(index, 1);
     }
   });
+}
+
+function trimMessage(args) {
+  let message = args.join(' ');
+
+  if (message.length > MAX_LOG_ENTRY_SIZE) {
+    return `${message.substring(0, MAX_LOG_ENTRY_SIZE)}...`;
+  }
+
+  return message;
 }

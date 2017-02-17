@@ -23,6 +23,7 @@ conversion({ html: '<h1>Hello World</h1>' }, function(err, result) {
   }
 
   console.log(result.numberOfPages);
+  console.log(result.logs);
   result.stream.pipe(fs.createWriteStream('/path/to/anywhere.pdf'));
   conversion.kill(); // necessary if you use the electron-server strategy, see bellow for details
 });
@@ -58,6 +59,8 @@ var conversion = require('electron-html-to')({
   host: '127.0.0.1',
   /* set to true to allow request using the file protocol (file:///). defaults to false */
   allowLocalFilesAccess: false,
+  /* the collected console.log, console.error, console.warn messages are trimmed by default */
+  maxLogEntrySize: 1000,
   /* optional chrome command line switches, see http://electron.atom.io/docs/v0.35.0/api/chrome-command-line-switches/ for details. defaults to { 'ignore-certificate-errors': null } */
   chromeCommandLineSwitches: {
     'disable-http-cache': null,
@@ -78,6 +81,10 @@ conversion({
   html: '<h1>Hello world</h1>',
   url: 'http://jsreport.net', // set direct url instead of html
   delay: 0, // time in ms to wait before the conversion
+  // boolean that specifies if we should collect logs calls (console.log, console.error, console.warn) in webpage
+  // logs will be available as result.logs after the conversion
+  // defaults to true
+  collectLogs: true,
   waitForJS: true, // set to true to enable programmatically specify (via Javascript of the page) when the conversion starts (see Programmatic conversion section for an example)
   waitForJSVarName: 'MY_CUSTOM_VAR_NAME', // name of the variable that will be used as the conversion trigger, defaults to "ELECTRON_HTML_TO_READY" (see Programmatic pdf printing section for an example)
   userAgent: 'CUSTOM_USER_AGENT', // set a custom user agent to use in electron's browser window

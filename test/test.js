@@ -196,6 +196,40 @@ describe('electron html to pdf', () => {
         done();
       });
     });
+
+    it('should collect logs in page', function(done) {
+      conversion({
+        html: `
+          <h1>aa</h1>
+          <script>
+            console.log("log message");
+            console.error("error message");
+            console.warn("warn message");
+          </script>
+        `
+      }, function(err, res) {
+        if (err) {
+          return done(err);
+        }
+
+        should(res.logs.length).be.eql(3);
+
+        res.logs.forEach((log) => {
+          if (log.level === 'debug') {
+            should(log.message).be.eql('log message');
+          } else if (log.level === 'error') {
+            should(log.message).be.eql('error message');
+          } else if (log.level === 'warn') {
+            should(log.message).be.eql('warn message');
+          }
+        });
+
+        should(res.numberOfPages).be.eql(1);
+        should(res.stream).have.property('readable');
+        res.stream.close();
+        done();
+      });
+    });
   }
 
   describe('failing to start workers', () => {

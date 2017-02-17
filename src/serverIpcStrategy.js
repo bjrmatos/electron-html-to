@@ -41,6 +41,7 @@ export default function(mode, options) {
     workersOptions.env.IISNODE_VERSION = process.env.IISNODE_VERSION;
   }
 
+  workersOptions.env.maxLogEntrySize = options.maxLogEntrySize;
   workersOptions.env.chromeCommandLineSwitches = JSON.stringify(options.chromeCommandLineSwitches || {});
   workersOptions.env.allowLocalFilesAccess = JSON.stringify(options.allowLocalFilesAccess || false);
 
@@ -96,6 +97,13 @@ export default function(mode, options) {
         let { output, ...restData } = res;
 
         debugStrategy('conversion ended successfully..');
+
+        if (Array.isArray(restData.logs)) {
+          restData.logs.forEach((m) => {
+            // eslint-disable-next-line no-param-reassign
+            m.timestamp = new Date(m.timestamp);
+          });
+        }
 
         // disabling no-undef rule because eslint don't detect object rest spread correctly
         /* eslint-disable no-undef */

@@ -17,15 +17,38 @@
     __electron_html_to.ipc.send('page-error', __electron_html_to.windowId, pageErr.message, pageErr.error.stack);
   });
 
-  var defaultLog = console.log;
+  var defaultLog = console.log,
+      defaultErrorLog = console.error,
+      defaultWarnLog = console.warn;
 
   console.log = function() {
     var newArgs = __electron_html_to.sliced(arguments);
 
+    newArgs.unshift('debug');
     newArgs.unshift(__electron_html_to.windowId);
 
     __electron_html_to.ipc.send('page-log', newArgs);
-    return defaultLog.apply(this, arguments);
+    return defaultLog.apply(this, __electron_html_to.sliced(arguments));
+  };
+
+  console.error = function() {
+    var newArgs = __electron_html_to.sliced(arguments);
+
+    newArgs.unshift('error');
+    newArgs.unshift(__electron_html_to.windowId);
+
+    __electron_html_to.ipc.send('page-log', newArgs);
+    return defaultErrorLog.apply(this, __electron_html_to.sliced(arguments));
+  };
+
+  console.warn = function() {
+    var newArgs = __electron_html_to.sliced(arguments);
+
+    newArgs.unshift('warn');
+    newArgs.unshift(__electron_html_to.windowId);
+
+    __electron_html_to.ipc.send('page-log', newArgs);
+    return defaultWarnLog.apply(this, __electron_html_to.sliced(arguments));
   };
 
   if (dataWindow.waitForJS) {

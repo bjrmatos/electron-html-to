@@ -71,7 +71,8 @@ function createConversion(options) {
       browserWindow: {
         webPreferences: {}
       },
-      waitForJSVarName: 'ELECTRON_HTML_TO_READY'
+      waitForJSVarName: 'ELECTRON_HTML_TO_READY',
+      collectLogs: true
     };
 
     debugConversion('generating new conversion task..');

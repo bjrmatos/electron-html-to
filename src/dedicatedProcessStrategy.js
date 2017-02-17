@@ -75,11 +75,12 @@ export default function(options, requestOptions, converterPath, id, cb) {
     tmpDir,
     timeout,
     pathToElectron,
-    allowLocalFilesAccess
+    allowLocalFilesAccess,
+    maxLogEntrySize
   } = options;
 
   const settingsFilePath = path.resolve(path.join(tmpDir, `${id}settings.html`));
-  const settingsContent = JSON.stringify({ ...requestOptions, converterPath, allowLocalFilesAccess });
+  const settingsContent = JSON.stringify({ ...requestOptions, converterPath, allowLocalFilesAccess, maxLogEntrySize });
 
   debugStrategy('saving settings in temporal file..');
 
@@ -193,6 +194,13 @@ export default function(options, requestOptions, converterPath, id, cb) {
         let { output, ...restData } = childData;
 
         debugStrategy('conversion ended successfully..');
+
+        if (Array.isArray(restData.logs)) {
+          restData.logs.forEach((m) => {
+            // eslint-disable-next-line no-param-reassign
+            m.timestamp = new Date(m.timestamp);
+          });
+        }
 
         cb(null, {
           ...restData,

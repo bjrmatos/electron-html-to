@@ -20,7 +20,9 @@ let mainWindow = null,
     settingsData,
     converterPath,
     converter,
+    maxLogEntrySize,
     log,
+    windowLogs = [],
     WORKER_ID,
     DEBUG_MODE;
 
@@ -44,6 +46,11 @@ settingsData = fs.readFileSync(settingsFile).toString();
 
 settingsData = JSON.parse(settingsData);
 converterPath = settingsData.converterPath;
+maxLogEntrySize = parseInt(settingsData.maxLogEntrySize, 10);
+
+if (isNaN(maxLogEntrySize)) {
+  maxLogEntrySize = 1000;
+}
 
 log(`requiring converter module from ${converterPath}`);
 converter = require(converterPath);
@@ -99,7 +106,19 @@ app.on('ready', () => {
     });
 
     renderer.on('page-log', (ev, args) => {
-      parentChannel.emit.apply(parentChannel, ['page-log'].concat(args));
+      let logLevel = args[1],
+          logArgs = args.slice(2),
+          // removing log level argument
+          newArgs = args.slice(0, 1).concat(logArgs);
+
+      // saving logs
+      windowLogs.push({
+        level: logLevel,
+        message: trimMessage(logArgs),
+        timestamp: new Date().getTime()
+      });
+
+      parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
     });
 
     renderer.on('log', function() {
@@ -177,6 +196,14 @@ function respond(err, data) {
     errMsg = err.message;
   }
 
+  if (settingsData.collectLogs) {
+    // eslint-disable-next-line no-param-reassign
+    data.logs = windowLogs;
+  } else {
+    // eslint-disable-next-line no-param-reassign
+    data.logs = [];
+  }
+
   parentChannel.emit('finish', errMsg, data);
 
   if (!mainWindow) {
@@ -188,4 +215,14 @@ function respond(err, data) {
     log('destroying browser window..');
     mainWindow.destroy();
   }
+}
+
+function trimMessage(args) {
+  let message = args.join(' ');
+
+  if (message.length > maxLogEntrySize) {
+    return `${message.substring(0, maxLogEntrySize)}...`;
+  }
+
+  return message;
 }
