@@ -7,7 +7,7 @@ electron-html-to
 
 This module let you convert a web page (html, css, js) in any format you want (via a converter function) using [electron](http://electron.atom.io/).
 
-*Works in electron@>=0.35.x including electron@1*
+*Works in electron@>=0.36.1 including electron@1*
 
 ```js
 var fs = require('fs'),
@@ -61,7 +61,7 @@ var conversion = require('electron-html-to')({
   allowLocalFilesAccess: false,
   /* the collected console.log, console.error, console.warn messages are trimmed by default */
   maxLogEntrySize: 1000,
-  /* optional chrome command line switches, see http://electron.atom.io/docs/v0.35.0/api/chrome-command-line-switches/ for details. defaults to { 'ignore-certificate-errors': null } */
+  /* optional chrome command line switches, see http://electron.atom.io/docs/v0.36.1/api/chrome-command-line-switches/ for details. defaults to { 'ignore-certificate-errors': null } */
   chromeCommandLineSwitches: {
     'disable-http-cache': null,
     'log-net-log': '/path/to/save'
@@ -95,7 +95,7 @@ conversion({
   },
   converterPath: '/path/to/a/converter.js', // absolute path to the converter function to use in the local conversion, if no specified the global converterPath option will be used
 
-  // options for electron's browser window, see http://electron.atom.io/docs/v0.35.0/api/browser-window/ for details for each option.
+  // options for electron's browser window, see http://electron.atom.io/docs/v0.36.1/api/browser-window/ for details for each option.
   // allowed browser-window options
   browserWindow: {
     width: 600, // defaults to 600
@@ -125,7 +125,7 @@ conversion({
     }
   },
 
-  // options to the pdf converter function, see electron's printoToPDF function http://electron.atom.io/docs/v0.35.0/api/web-contents/#webcontents-printtopdf-options-callback for details for each option.
+  // options to the pdf converter function, see electron's printoToPDF function http://electron.atom.io/docs/v0.36.1/api/web-contents/#webcontents-printtopdf-options-callback for details for each option.
   // allowed printToPDF options
   pdf: {
     marginsType: 0,
@@ -225,7 +225,7 @@ This will print out some additional information about what's going on.
 Requirements
 ------------
 
--	Install [electron](http://electron.atom.io/) >= 0.35.x including electron@1, the easy way to install
+-	Install [electron](http://electron.atom.io/) >= 0.36.1 including electron@1, the easy way to install
 electron in your app is `npm install electron --save` or `npm install electron-prebuilt --save`
 
 Troubleshooting
