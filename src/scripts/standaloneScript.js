@@ -6,7 +6,7 @@ const util = require('util'),
       electron = require('electron'),
       sliced = require('sliced'),
       getBrowserWindowOpts = require('./getBrowserWindowOpts'),
-      registerProtocol = require('./registerProtocol'),
+      listenRequestsInPage = require('./listenRequestsInPage'),
       conversionScript = require('./conversionScript'),
       evaluate = require('./evaluateJS'),
       parentChannel = require('../ipc')(process),
@@ -16,6 +16,7 @@ const util = require('util'),
 
 let mainWindow = null,
     mainWindowId,
+    electronVersion,
     settingsFile,
     settingsData,
     converterPath,
@@ -29,6 +30,14 @@ let mainWindow = null,
 settingsFile = process.env.ELECTRON_HTML_TO_SETTINGS_FILE_PATH;
 WORKER_ID = process.env.ELECTRON_WORKER_ID;
 DEBUG_MODE = Boolean(process.env.ELECTRON_HTML_TO_DEBUGGING);
+
+if (process.versions.electron) {
+  electronVersion = process.versions.electron;
+} else if (process.versions['atom-shell']) {
+  electronVersion = process.versions['atom-shell'];
+} else {
+  electronVersion = '';
+}
 
 log = function() {
   // eslint-disable-next-line prefer-rest-params
@@ -79,112 +88,116 @@ if (app.dock && typeof app.dock.hide === 'function') {
 }
 
 app.on('ready', () => {
-  let protocol = electron.protocol;
-
   let evaluateInWindow,
       dataForWindow = {},
+      extraHeaders = '',
       browserWindowOpts;
 
   log('electron process ready..');
 
-  registerProtocol(protocol, settingsData.allowLocalFilesAccess, log, (registrationErr) => {
-    let extraHeaders = '';
+  if (settingsData.waitForJS) {
+    log('waitForJS enabled..');
 
-    if (registrationErr) {
-      return respond(registrationErr);
-    }
+    dataForWindow.waitForJS = settingsData.waitForJS;
+    dataForWindow.waitForJSVarName = settingsData.waitForJSVarName;
+  }
 
-    if (settingsData.waitForJS) {
-      log('waitForJS enabled..');
+  renderer.on('page-error', (ev, windowId, errMsg, errStack) => {
+    // saving errors on page
+    saveLogsInStore(windowLogs, 'warn', `error in page: ${errMsg}`);
 
-      dataForWindow.waitForJS = settingsData.waitForJS;
-      dataForWindow.waitForJSVarName = settingsData.waitForJSVarName;
-    }
+    saveLogsInStore(windowLogs, 'warn', `error in page stack: ${errStack}`);
 
-    renderer.on('page-error', (ev, windowId, errMsg, errStack) => {
-      parentChannel.emit('page-error', windowId, errMsg, errStack);
-    });
-
-    renderer.on('page-log', (ev, args) => {
-      let logLevel = args[1],
-          logArgs = args.slice(2),
-          // removing log level argument
-          newArgs = args.slice(0, 1).concat(logArgs);
-
-      // saving logs
-      windowLogs.push({
-        level: logLevel,
-        message: trimMessage(logArgs),
-        timestamp: new Date().getTime()
-      });
-
-      parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
-    });
-
-    renderer.on('log', function() {
-      // eslint-disable-next-line prefer-rest-params
-      let newArgs = sliced(arguments),
-          windowId = newArgs.splice(0, 2)[1];
-
-      newArgs.unshift(`[Browser window - ${windowId} log ]:`);
-
-      log.apply(log, newArgs);
-    });
-
-    // get browser window options with defaults
-    browserWindowOpts = getBrowserWindowOpts(settingsData.browserWindow);
-
-    log('creating new browser window with options:', browserWindowOpts);
-
-    if (DEBUG_MODE) {
-      browserWindowOpts.show = true;
-    }
-
-    if (browserWindowOpts.show) {
-      log('browser window visibility activated');
-    }
-
-    mainWindow = new BrowserWindow(browserWindowOpts);
-    mainWindowId = mainWindow.id;
-
-    evaluateInWindow = evaluate(mainWindow);
-    global.windowsData[mainWindowId] = dataForWindow;
-
-    mainWindow.webContents.setAudioMuted(true);
-
-    mainWindow.on('closed', () => {
-      log('browser-window closed..');
-
-      delete global.windowsData[mainWindowId];
-      mainWindow = null;
-    });
-
-    conversionScript(settingsData, mainWindow, evaluateInWindow, log, converter, respond);
-
-    if (settingsData.userAgent) {
-      log(`setting up custom user agent: ${settingsData.userAgent}`);
-      mainWindow.webContents.setUserAgent(settingsData.userAgent);
-    }
-
-    if (typeof settingsData.extraHeaders === 'object') {
-      Object.keys(settingsData.extraHeaders).forEach((key) => {
-        extraHeaders += `${key}: ${settingsData.extraHeaders[key]}\n`;
-      });
-    }
-
-    log(util.format('loading url in browser window: %s, with headers: %s', settingsData.url, extraHeaders));
-
-    if (extraHeaders) {
-      mainWindow.loadURL(settingsData.url, {
-        extraHeaders
-      });
-    } else {
-      mainWindow.loadURL(settingsData.url);
-    }
-
-    // useful in windows to prevent the electron process to hang..
-    mainWindow.focus();
+    parentChannel.emit('page-error', windowId, errMsg, errStack);
   });
+
+  renderer.on('page-log', (ev, args) => {
+    let logLevel = args[1],
+        logArgs = args.slice(2),
+        // removing log level argument
+        newArgs = args.slice(0, 1).concat(logArgs);
+
+    // saving logs
+    saveLogsInStore(windowLogs, logLevel, logArgs);
+
+    parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
+  });
+
+  renderer.on('log', function() {
+    // eslint-disable-next-line prefer-rest-params
+    let newArgs = sliced(arguments),
+        windowId = newArgs.splice(0, 2)[1];
+
+    newArgs.unshift(`[Browser window - ${windowId} log ]:`);
+
+    log.apply(log, newArgs);
+  });
+
+  // get browser window options with defaults
+  browserWindowOpts = getBrowserWindowOpts(settingsData.browserWindow);
+
+  log('creating new browser window with options:', browserWindowOpts);
+
+  if (DEBUG_MODE) {
+    browserWindowOpts.show = true;
+  }
+
+  if (browserWindowOpts.show) {
+    log('browser window visibility activated');
+  }
+
+  mainWindow = new BrowserWindow(browserWindowOpts);
+  mainWindowId = mainWindow.id;
+
+  evaluateInWindow = evaluate(mainWindow);
+  global.windowsData[mainWindowId] = dataForWindow;
+
+  saveLogsInStore(windowLogs, 'debug', `Converting using dedicated-process strategy in electron ${electronVersion}`);
+
+  mainWindow.webContents.setAudioMuted(true);
+
+  listenRequestsInPage(
+    mainWindow,
+    {
+      allowLocalFilesAccess: settingsData.allowLocalFilesAccess,
+      pageUrl: settingsData.url
+    },
+    log,
+    saveLogsInStore(windowLogs)
+  );
+
+  mainWindow.on('closed', () => {
+    log('browser-window closed..');
+
+    delete global.windowsData[mainWindowId];
+    mainWindow = null;
+  });
+
+  conversionScript(settingsData, mainWindow, evaluateInWindow, log, converter, respond);
+
+  if (settingsData.userAgent) {
+    log(`setting up custom user agent: ${settingsData.userAgent}`);
+    mainWindow.webContents.setUserAgent(settingsData.userAgent);
+  }
+
+  if (typeof settingsData.extraHeaders === 'object') {
+    Object.keys(settingsData.extraHeaders).forEach((key) => {
+      extraHeaders += `${key}: ${settingsData.extraHeaders[key]}\n`;
+    });
+  }
+
+  log(util.format('loading url in browser window: %s, with headers: %s', settingsData.url, extraHeaders));
+
+  if (extraHeaders) {
+    mainWindow.loadURL(settingsData.url, {
+      extraHeaders
+    });
+  } else {
+    mainWindow.loadURL(settingsData.url);
+  }
+
+  // useful in windows to prevent the electron process to hang..
+  mainWindow.focus();
 });
 
 function respond(err, data) {
@@ -217,8 +230,31 @@ function respond(err, data) {
   }
 }
 
+function saveLogsInStore(store, level, msg) {
+  // eslint-disable-next-line prefer-rest-params
+  let args = sliced(arguments);
+
+  if (args.length === 1) {
+    return _saveLogs.bind(undefined, store);
+  }
+
+  return _saveLogs(store, level, msg);
+
+  function _saveLogs(_store, _level, _msg) {
+    _store.push({
+      level: _level,
+      message: trimMessage(_msg),
+      timestamp: new Date().getTime()
+    });
+  }
+}
+
 function trimMessage(args) {
-  let message = args.join(' ');
+  let message = args;
+
+  if (Array.isArray(args)) {
+    message = args.join(' ');
+  }
 
   if (message.length > maxLogEntrySize) {
     return `${message.substring(0, maxLogEntrySize)}...`;

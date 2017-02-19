@@ -109,10 +109,7 @@ function createConversion(options) {
       // prefix the request in order to recognize later in electron protocol handler
       localOpts.url = localOpts.url || url.format({
         protocol: 'file',
-        pathname: localOpts.htmlFile,
-        query: {
-          'ELECTRON-HTML-TO-LOAD-PAGE': true
-        }
+        pathname: localOpts.htmlFile
       });
 
       localOpts.chromeCommandLineSwitches = options.chromeCommandLineSwitches;

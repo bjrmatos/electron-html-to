@@ -5,7 +5,7 @@ const util = require('util'),
       electron = require('electron'),
       sliced = require('sliced'),
       getBrowserWindowOpts = require('./getBrowserWindowOpts'),
-      registerProtocol = require('./registerProtocol'),
+      listenRequestsInPage = require('./listenRequestsInPage'),
       conversionScript = require('./conversionScript'),
       evaluate = require('./evaluateJS'),
       parentChannel = require('../ipc')(process),
@@ -14,6 +14,7 @@ const util = require('util'),
       BrowserWindow = electron.BrowserWindow;
 
 let windows = [],
+    electronVersion,
     log,
     WORKER_ID,
     DEBUG_MODE,
@@ -26,6 +27,14 @@ DEBUG_MODE = Boolean(process.env.ELECTRON_HTML_TO_DEBUGGING);
 CHROME_COMMAND_LINE_SWITCHES = JSON.parse(process.env.chromeCommandLineSwitches);
 ALLOW_LOCAL_FILES_ACCESS = process.env.allowLocalFilesAccess === 'true';
 MAX_LOG_ENTRY_SIZE = parseInt(process.env.maxLogEntrySize, 10);
+
+if (process.versions.electron) {
+  electronVersion = process.versions.electron;
+} else if (process.versions['atom-shell']) {
+  electronVersion = process.versions['atom-shell'];
+} else {
+  electronVersion = '';
+}
 
 if (isNaN(MAX_LOG_ENTRY_SIZE)) {
   MAX_LOG_ENTRY_SIZE = 1000;
@@ -70,79 +79,72 @@ app.on('window-all-closed', () => {
 });
 
 app.on('ready', () => {
-  const protocol = electron.protocol;
-
   log('electron process ready..');
 
-  registerProtocol(protocol, ALLOW_LOCAL_FILES_ACCESS, log, (registrationErr) => {
-    if (registrationErr) {
-      return app.quit();
+  renderer.on('page-error', (ev, windowId, errMsg, errStack) => {
+    // saving errors on page
+    saveLogsInStore(global.windowsLogs[windowId], 'warn', `error in page: ${errMsg}`);
+
+    saveLogsInStore(global.windowsLogs[windowId], 'warn', `error in page stack: ${errStack}`);
+
+    parentChannel.emit('page-error', windowId, errMsg, errStack);
+  });
+
+  renderer.on('page-log', (ev, args) => {
+    let windowId = args[0],
+        logLevel = args[1],
+        logArgs = args.slice(2),
+        // removing log level argument
+        newArgs = args.slice(0, 1).concat(logArgs);
+
+    // saving logs
+    saveLogsInStore(global.windowsLogs[windowId], logLevel, logArgs);
+
+    parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
+  });
+
+  renderer.on('log', function() {
+    // eslint-disable-next-line prefer-rest-params
+    let newArgs = sliced(arguments),
+        windowId = newArgs.splice(0, 2)[1];
+
+    newArgs.unshift(`[Browser window - ${windowId} log ]:`);
+
+    log.apply(log, newArgs);
+  });
+
+  // communication with electron-workers ipc
+  process.on('message', (data) => {
+    if (!data) {
+      return;
     }
 
-    renderer.on('page-error', (ev, windowId, errMsg, errStack) => {
-      parentChannel.emit('page-error', windowId, errMsg, errStack);
-    });
+    function respondIpc(err, payload) {
+      let msg = {
+        workerEvent: 'taskResponse',
+        taskId: data.taskId
+      };
 
-    renderer.on('page-log', (ev, args) => {
-      let windowId = args[0],
-          logLevel = args[1],
-          logArgs = args.slice(2),
-          // removing log level argument
-          newArgs = args.slice(0, 1).concat(logArgs);
-
-      // saving logs
-      global.windowsLogs[windowId].push({
-        level: logLevel,
-        message: trimMessage(logArgs),
-        timestamp: new Date().getTime()
-      });
-
-      parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
-    });
-
-    renderer.on('log', function() {
-      // eslint-disable-next-line prefer-rest-params
-      let newArgs = sliced(arguments),
-          windowId = newArgs.splice(0, 2)[1];
-
-      newArgs.unshift(`[Browser window - ${windowId} log ]:`);
-
-      log.apply(log, newArgs);
-    });
-
-    // communication with electron-workers ipc
-    process.on('message', (data) => {
-      if (!data) {
-        return;
+      if (err) {
+        msg.error = err;
+      } else {
+        msg.response = payload;
       }
 
-      function respondIpc(err, payload) {
-        let msg = {
-          workerEvent: 'taskResponse',
-          taskId: data.taskId
-        };
+      process.send(msg);
+    }
 
-        if (err) {
-          msg.error = err;
-        } else {
-          msg.response = payload;
-        }
+    if (data.workerEvent === 'ping') {
+      process.send({ workerEvent: 'pong' });
+    } else if (data.workerEvent === 'task') {
+      log('new task for electron-ipc..');
 
-        process.send(msg);
+      try {
+        createBrowserWindow(respondIpc, data.payload);
+      } catch (uncaughtErr) {
+        respondIpc(uncaughtErr);
       }
-
-      if (data.workerEvent === 'ping') {
-        process.send({ workerEvent: 'pong' });
-      } else if (data.workerEvent === 'task') {
-        log('new task for electron-ipc..');
-
-        try {
-          createBrowserWindow(respondIpc, data.payload);
-        } catch (uncaughtErr) {
-          respondIpc(uncaughtErr);
-        }
-      }
-    });
+    }
   });
 });
 
@@ -223,7 +225,23 @@ function createBrowserWindow(respondIpc, settingsData) {
   global.windowsData[currentWindowId] = dataForWindow;
   global.windowsLogs[currentWindowId] = [];
 
+  saveLogsInStore(
+    global.windowsLogs[currentWindowId],
+    'debug',
+    `Converting using electron-ipc strategy in electron ${electronVersion}`
+  );
+
   currentWindow.webContents.setAudioMuted(true);
+
+  listenRequestsInPage(
+    currentWindow,
+    {
+      allowLocalFilesAccess: ALLOW_LOCAL_FILES_ACCESS,
+      pageUrl: settingsData.url
+    },
+    log,
+    saveLogsInStore(global.windowsLogs[currentWindowId])
+  );
 
   currentWindow.on('closed', () => {
     log('browser-window closed..');
@@ -274,8 +292,31 @@ function removeWindow(browserWindow) {
   });
 }
 
+function saveLogsInStore(store, level, msg) {
+  // eslint-disable-next-line prefer-rest-params
+  let args = sliced(arguments);
+
+  if (args.length === 1) {
+    return _saveLogs.bind(undefined, store);
+  }
+
+  return _saveLogs(store, level, msg);
+
+  function _saveLogs(_store, _level, _msg) {
+    _store.push({
+      level: _level,
+      message: trimMessage(_msg),
+      timestamp: new Date().getTime()
+    });
+  }
+}
+
 function trimMessage(args) {
-  let message = args.join(' ');
+  let message = args;
+
+  if (Array.isArray(args)) {
+    message = args.join(' ');
+  }
 
   if (message.length > MAX_LOG_ENTRY_SIZE) {
     return `${message.substring(0, MAX_LOG_ENTRY_SIZE)}...`;

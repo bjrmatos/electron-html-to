@@ -212,17 +212,7 @@ describe('electron html to pdf', () => {
           return done(err);
         }
 
-        should(res.logs.length).be.eql(3);
-
-        res.logs.forEach((log) => {
-          if (log.level === 'debug') {
-            should(log.message).be.eql('log message');
-          } else if (log.level === 'error') {
-            should(log.message).be.eql('error message');
-          } else if (log.level === 'warn') {
-            should(log.message).be.eql('warn message');
-          }
-        });
+        should(res.logs.length).be.aboveOrEqual(3);
 
         should(res.numberOfPages).be.eql(1);
         should(res.stream).have.property('readable');
