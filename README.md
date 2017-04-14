@@ -231,10 +231,16 @@ electron in your app is `npm install electron --save` or `npm install electron-p
 Troubleshooting
 ---------------
 
+#### Using electron in single core machines
+
+If you are using a machine with a single-core processor you will probably experience a high CPU usage when doing any conversion (97% in most cases and the usage is worse when using Windows), this is because a limitation in electron when it is being used on single core machines, unfortunately the only way to overcome this is to upgrade your machine to a processor with more cores (a processor with two cores is fine).
+more info: [issue1](https://github.com/Microsoft/vscode/issues/17097), [issue2](https://github.com/Microsoft/vscode/issues/22724)
+
+#### env: node: No such file or directory when using electron-prebuilt and nvm
+
 If you are using node with [nvm](https://github.com/creationix/nvm) and you have installed electron with `npm install -g electron-prebuilt` you probably will see an error or log with `env: node: No such file or directory`, this is because the electron executable installed by `electron-prebuilt` is a node CLI spawning the real electron executable internally, since nvm don't install/symlink node to `/usr/bin/env/node` when the electron executable installed by `electron-prebuilt` tries to run, it will fail because `node` won't be found in that context..
 
-Solution
---------
+Solution:
 
 1.- Install `electron-prebuilt` as a dependency in your app, this is the option **recommended** because you probably want to ensure your app always run with the exact version you tested it, and probably you don't want to install electron globally in your system.
 
