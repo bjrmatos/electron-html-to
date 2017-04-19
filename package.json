@@ -38,7 +38,7 @@
     "pdfjs-dist": "1.5.285",
     "sliced": "1.0.1",
     "uuid": "2.0.2",
-    "which": "1.2.9"
+    "which": "1.2.11"
   },
   "devDependencies": {
     "babel": "5.8.29",
