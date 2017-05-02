@@ -48,6 +48,8 @@ var conversion = require('electron-html-to')({
   converterPath: '/path/to/a/converter.js'
   /* number of allocated electron processes (when using electron-server strategy). defaults to 2 */
   numberOfWorkers: 2,
+  /* time in ms to wait for worker ping response in order to be considered alive when using `electron-server` or `electron-ipc` strategy, see https://github.com/bjrmatos/electron-workers#options for details */
+  pingTimeout: 100,
   /* timeout in ms for html conversion, when the timeout is reached, the conversion is cancelled. defaults to 180000ms */
   timeout: 5000,
   /* directory where are stored temporary html and pdf files, use something like npm package reap to clean this up */
