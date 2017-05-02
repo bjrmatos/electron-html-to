@@ -125,12 +125,16 @@ export default function(options, requestOptions, converterPath, id, cb) {
       childOpts.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
     }
 
+    if (process.env.ELECTRON_ENABLE_LOGGING !== undefined) {
+      childOpts.env.ELECTRON_ENABLE_LOGGING = process.env.ELECTRON_ENABLE_LOGGING;
+    }
+
     if (process.env.IISNODE_VERSION !== undefined) {
       debugStrategy('running in IISNODE..');
       childOpts.env.IISNODE_VERSION = process.env.IISNODE_VERSION;
     }
 
-    if (debugMode) {
+    if (debugMode || process.env.ELECTRON_ENABLE_LOGGING !== undefined || process.env.ELECTRON_HTML_TO_STDSTREAMS !== undefined) {
       childOpts.stdio = [null, process.stdout, process.stderr, 'ipc'];
     }
 

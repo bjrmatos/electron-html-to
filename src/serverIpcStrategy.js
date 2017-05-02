@@ -37,6 +37,10 @@ export default function(mode, options) {
     workersOptions.env.ELECTRON_HTML_TO_DEBUGGING = process.env.ELECTRON_HTML_TO_DEBUGGING;
   }
 
+  if (process.env.ELECTRON_ENABLE_LOGGING !== undefined) {
+    workersOptions.env.ELECTRON_ENABLE_LOGGING = process.env.ELECTRON_ENABLE_LOGGING;
+  }
+
   if (process.env.IISNODE_VERSION !== undefined) {
     workersOptions.env.IISNODE_VERSION = process.env.IISNODE_VERSION;
   }
@@ -47,7 +51,7 @@ export default function(mode, options) {
 
   workersOptions.stdio = [null, null, null, 'ipc'];
 
-  if (debugMode) {
+  if (debugMode || process.env.ELECTRON_ENABLE_LOGGING !== undefined || process.env.ELECTRON_HTML_TO_STDSTREAMS !== undefined) {
     workersOptions.stdio = [null, process.stdout, process.stderr, 'ipc'];
   }
 

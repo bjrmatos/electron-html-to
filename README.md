@@ -218,9 +218,13 @@ custom html:
 Debugging
 ---------
 
-To get more information about what's happening inside the conversion run your app with the `DEBUG` flag. `DEBUG=electron-html-to,electron-html-to:* node app.js` (on Windows use `set DEBUG=electron-html-to,electron-html-to:* & node app.js`).
+- To get more information (internal debugging logs of the module) about what's happening inside the conversion run your app with the `DEBUG` env var: `DEBUG=electron-html-to,electron-html-to:* node app.js` (on Windows use `set DEBUG=electron-html-to,electron-html-to:* && node app.js`). This will print out some additional information about what's going on.
 
-This will print out some additional information about what's going on.
+- To see the electron process UI created (the visible electron window) and point stdout/stderr of the electron processes to console run your app with the `ELECTRON_HTML_TO_DEBUGGING` env var: `ELECTRON_HTML_TO_DEBUGGING=true node app.js` (on Windows use `set ELECTRON_HTML_TO_DEBUGGING=true && node app.js`).
+
+- To only point stdout/stderr of the electron processes to console run your app with the `ELECTRON_HTML_TO_STDSTREAMS` env var: `ELECTRON_HTML_TO_STDSTREAMS=true node app.js` (on Windows use `set ELECTRON_HTML_TO_STDSTREAMS=true && node app.js`).
+
+- To enable low level messages (chromium logs) of the electron processes run your app with the [`ELECTRON_ENABLE_LOGGING`](https://electron.atom.io/docs/api/chrome-command-line-switches/#enable-logging) env var: `ELECTRON_ENABLE_LOGGING=true node app.js` (on Windows use `set ELECTRON_ENABLE_LOGGING=true && node app.js`).
 
 Requirements
 ------------
