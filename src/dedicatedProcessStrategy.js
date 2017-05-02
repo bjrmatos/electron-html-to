@@ -134,11 +134,19 @@ export default function(options, requestOptions, converterPath, id, cb) {
       childOpts.stdio = [null, process.stdout, process.stderr, 'ipc'];
     }
 
-    debugStrategy('spawing new electron process..');
-    debugStrategy('processing conversion..');
+    debugStrategy('spawning new electron process with args:', childArgs, 'and options:', childOpts);
 
     child = childProcess.spawn(electronPath, childArgs, childOpts);
+
+    debugStrategy('electron process pid:', child.pid);
+
     childIpc = ipc(child);
+
+    debugStrategy('processing conversion..');
+
+    child.on('exit', (code, signal) => {
+      debugStrategy(`electron process exit with code: ${code} and signal: ${signal}`);
+    });
 
     child.on('error', (err) => {
       if (isDone) {
