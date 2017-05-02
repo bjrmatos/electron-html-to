@@ -52,6 +52,7 @@ function writeHtml(opt, tmpPath, id, cb) {
 
 function createConversion(options) {
   let mode;
+  let serverIpcStrategyCall;
 
   if (options.strategy === 'electron-server') {
     mode = 'server';
@@ -59,8 +60,10 @@ function createConversion(options) {
     mode = 'ipc';
   }
 
-  // each conversion instance will create a new electron-workers instance.
-  let serverIpcStrategyCall = serverIpcStrategy(mode, options);
+  if (options.strategy === 'electron-server' || options.strategy === 'electron-ipc') {
+    // each instance with ipc or server mode will create a new electron-workers instance.
+    serverIpcStrategyCall = serverIpcStrategy(mode, options);
+  }
 
   let conversion = (conversionOpts, cb) => {
     let localOpts = conversionOpts,
@@ -137,7 +140,9 @@ function createConversion(options) {
   };
 
   function kill() {
-    serverIpcStrategyCall.kill();
+    if (serverIpcStrategyCall) {
+      serverIpcStrategyCall.kill();
+    }
   }
 
   conversion.options = options;
