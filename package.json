@@ -30,11 +30,11 @@
   "dependencies": {
     "body": "5.1.0",
     "debug": "2.2.0",
-    "electron-workers": "1.10.2",
+    "electron-workers": "1.10.3",
     "lodash.pick": "4.2.1",
     "minstache": "1.2.0",
     "mkdirp": "0.5.1",
-    "object-assign": "4.1.0",
+    "object-assign": "4.1.1",
     "pdfjs-dist": "1.5.285",
     "sliced": "1.0.1",
     "uuid": "2.0.2",
