@@ -4,6 +4,7 @@ const util = require('util'),
       // eslint-disable-next-line import/no-unresolved
       electron = require('electron'),
       sliced = require('sliced'),
+      assign = require('object-assign'),
       getBrowserWindowOpts = require('./getBrowserWindowOpts'),
       listenRequestsInPage = require('./listenRequestsInPage'),
       conversionScript = require('./conversionScript'),
@@ -126,7 +127,9 @@ app.on('ready', () => {
       };
 
       if (err) {
-        msg.error = err;
+        // err.message is lost when serialized, so we need to explicitly set it
+        msg.error = assign({}, err);
+        msg.error.message = err.message;
       } else {
         msg.response = payload;
       }
