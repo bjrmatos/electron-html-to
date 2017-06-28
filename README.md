@@ -44,6 +44,10 @@ Global options
 
 ```js
 var conversion = require('electron-html-to')({
+  /* optional absolute path to a custom electron executable, if not passed we will try to detect the path of the electron executable installed */
+  pathToElectron: '/path/to/custom/electron-executable',
+  /* optional array of custom arguments to pass to the electron executable */
+  electronArgs: ['--some-value=2', '--enable-some-behaviour'],
   /* required absolute path to the converter function to use, every conversion will use the converter specified  */
   converterPath: '/path/to/a/converter.js'
   /* number of allocated electron processes (when using electron-server strategy). defaults to 2 */

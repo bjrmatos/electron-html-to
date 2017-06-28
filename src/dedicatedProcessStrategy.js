@@ -75,6 +75,7 @@ export default function(options, requestOptions, converterPath, id, cb) {
     tmpDir,
     timeout,
     pathToElectron,
+    electronArgs,
     allowLocalFilesAccess,
     maxLogEntrySize
   } = options;
@@ -85,7 +86,7 @@ export default function(options, requestOptions, converterPath, id, cb) {
   debugStrategy('saving settings in temporal file..');
 
   saveFile(tmpDir, settingsFilePath, settingsContent, (saveFileErr) => {
-    const childArgs = [];
+    let childArgs = [];
 
     let debugMode = false,
         isDone = false,
@@ -99,7 +100,11 @@ export default function(options, requestOptions, converterPath, id, cb) {
       return cb(saveFileErr);
     }
 
-    childArgs.push(path.join(__dirname, 'scripts', 'standaloneScript.js'));
+    if (Array.isArray(electronArgs)) {
+      childArgs = electronArgs.slice();
+    }
+
+    childArgs.unshift(path.join(__dirname, 'scripts', 'standaloneScript.js'));
 
     childOpts = {
       env: {
