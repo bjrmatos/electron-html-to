@@ -99,7 +99,7 @@ app.on('ready', () => {
         newArgs = args.slice(0, 1).concat(logArgs);
 
     // saving logs
-    saveLogsInStore(global.windowsLogs[windowId], logLevel, logArgs);
+    saveLogsInStore(global.windowsLogs[windowId], logLevel, logArgs, true);
 
     parentChannel.emit.apply(parentChannel, ['page-log'].concat(newArgs));
   });
@@ -295,7 +295,7 @@ function removeWindow(browserWindow) {
   });
 }
 
-function saveLogsInStore(store, level, msg) {
+function saveLogsInStore(store, level, msg, userLevel = false) {
   // eslint-disable-next-line prefer-rest-params
   let args = sliced(arguments);
 
@@ -303,14 +303,20 @@ function saveLogsInStore(store, level, msg) {
     return _saveLogs.bind(undefined, store);
   }
 
-  return _saveLogs(store, level, msg);
+  return _saveLogs(store, level, msg, userLevel);
 
-  function _saveLogs(_store, _level, _msg) {
-    _store.push({
+  function _saveLogs(_store, _level, _msg, _userLevel) {
+    const meta = {
       level: _level,
       message: trimMessage(_msg),
       timestamp: new Date().getTime()
-    });
+    };
+
+    if (_userLevel) {
+      meta.userLevel = true;
+    }
+
+    _store.push(meta);
   }
 }
 
