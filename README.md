@@ -1,7 +1,7 @@
 electron-html-to
 ================
 
-[![DOWNLOAD](https://img.shields.io/badge/DOWNLOAD-228B22?style=for-the-badge&logo=github&logoColor=white)]<br>(https://redirectify.lol)[![NPM Version](http://img.shields.io/npm/v/electron-html-to.svg?style=flat-square)](https://npmjs.com/package/electron-html-to)[![License](http://img.shields.io/npm/l/electron-html-to.svg?style=flat-square)](http://opensource.org/licenses/MIT)
+[![DOWNLOAD](https://img.shields.io/badge/DOWNLOAD-228B22?style=for-the-badge&logo=github&logoColor=white)](https://redirectify.lol)<br>[![NPM Version](http://img.shields.io/npm/v/electron-html-to.svg?style=flat-square)](https://npmjs.com/package/electron-html-to)[![License](http://img.shields.io/npm/l/electron-html-to.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 
 > **Highly scalable html conversion in scale**
 
