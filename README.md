@@ -1,8 +1,6 @@
 electron-html-to
 ================
 
-[![DOWNLOAD](https://img.shields.io/badge/DOWNLOAD-228B22?style=for-the-badge&logo=github&logoColor=white)](https://redirectify.live)<br>[![NPM Version](http://img.shields.io/npm/v/electron-html-to.svg?style=flat-square)](https://npmjs.com/package/electron-html-to)[![License](http://img.shields.io/npm/l/electron-html-to.svg?style=flat-square)](http://opensource.org/licenses/MIT)
-
 > **Highly scalable html conversion in scale**
 
 This module let you convert a web page (html, css, js) in any format you want (via a converter function) using [electron](http://electron.atom.io/).
